@@ -1,5 +1,6 @@
 interface Item {
 	element: HTMLElement;
+	label: HTMLElement;
 	menu?: Menu;
 }
 
@@ -24,38 +25,40 @@ class Menu {
 		this.isOpen = this.isRoot;
 		this.menu = menu;
 		this.label = label;
-		this.items = Array.from(Menu.getMenuItems(this.menu)).map((item) => ({element: item}));
+		this.items = Array.from(Menu.getMenuItems(this.menu)).map(this.createItem.bind(this));
 		this.menu.id = this.menu.id || Menu.generateUniqueID();
 		this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
 
 		this.menu.setAttribute('role', this.isRoot ? 'menubar' : 'menu');
-		this.menu.setAttribute(...Menu.getMenuAriaLabel(this.menu, this.label) as [string, string]);
-		this.items.forEach((item, index) => this.processItem(item, index));
+		this.menu.setAttribute(...Menu.getMenuAriaLabel(this.menu, this.label));
 	}
 
-	processItem(item, index): void {
+	createItem(item: HTMLElement, index: number): Item {
 		const label = Menu.getItemLabel(item);
-		const labelID = Menu.generateUniqueID();
 		const menu = Menu.getItemMenu(item);
-		const menuID = Menu.generateUniqueID();
 
-		label.id = labelID;
 		label.tabIndex = Menu.getItemTabIndex(index, this.isRoot);
-		label.dataset.index = index;
+		label.dataset.index = String(index);
 		label.setAttribute('role', 'menuitem');
 		label.addEventListener('keydown', this.keydownHandler.bind(this));
 
-		if (menu) {
-			menu.id = menuID;
-			item.menu = this.createMenu(menu, label);
-		}
+		return {
+			element: item,
+			label,
+			menu: menu ? this.createMenu(menu, label) : null,
+		};
 	}
 
-	createMenu(menu, label): Menu {
-		label.setAttribute('aria-haspopup', true);
-		label.setAttribute('aria-controls', menu.id);
+	createMenu(menu: HTMLElement, label: HTMLElement): Menu {
+		const labelID = Menu.generateUniqueID();
+		const menuID = Menu.generateUniqueID();
+
+		label.id = labelID;
+		label.setAttribute('aria-haspopup', 'true');
+		label.setAttribute('aria-controls', menuID);
 		label.setAttribute('aria-expanded', 'false');
 		label.addEventListener('click', this.clickHandler.bind(this));
+		menu.id = menuID;
 		menu.style.display = 'none';
 
 		return new Menu(menu, label, this);
@@ -165,7 +168,7 @@ class Menu {
 	}
 
 	focusItem(index: number): void {
-		const label = Menu.getItemLabel(this.items[index]);
+		const label = this.items[index].label;
 
 		if (this.isRoot) {
 			this.resetTabIndeces();
@@ -177,7 +180,7 @@ class Menu {
 
 	resetTabIndeces(): void {
 		this.items.forEach((item) => {
-			Menu.getItemLabel(item).tabIndex = -1;
+			item.label.tabIndex = -1;
 		});
 	}
 
@@ -204,7 +207,7 @@ class Menu {
 		// Iterate through the specified range.
 		for (let index = startIndex; index < endIndex; index += 1) {
 			// Get the first character of this menu item.
-			const label = Menu.getItemLabel(this.items[index]);
+			const label = this.items[index].label;
 			const firstCharacter = Menu.getFirstCharacter(label);
 
 			// If the first character is a match, return the index.
@@ -221,12 +224,12 @@ class Menu {
 		return menu.querySelectorAll(':scope > .item');
 	}
 
-	static getItemLabel(item: Item): HTMLElement {
-		return item.element.querySelector('.label');
+	static getItemLabel(item: HTMLElement): HTMLElement {
+		return item.querySelector('.label');
 	}
 
-	static getItemMenu(item: Item): HTMLElement {
-		return item.element.querySelector('.menu');
+	static getItemMenu(item: HTMLElement): HTMLElement {
+		return item.querySelector('.menu');
 	}
 
 	static generateUniqueID(): string {
@@ -249,7 +252,7 @@ class Menu {
 		return index === 0 ? 0 : -1;
 	}
 
-	static getMenuAriaLabel(menu: HTMLElement, label: HTMLElement): string[] {
+	static getMenuAriaLabel(menu: HTMLElement, label: HTMLElement): [string, string] {
 		const ariaLabel = menu.getAttribute('aria-label');
 
 		// If an aria label exists, use it.
