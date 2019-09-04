@@ -1,19 +1,13 @@
 .menu {
 	display: flex;
-	background-color: #ddd;
+	justify-content: center;
+	background-color: var(--gray-8);
 }
 
 .menu .menu {
 	display: none;
-	min-width: 12rem;
+	width: 12rem;
 	position: absolute;
-	top: 100%;
-	left: 0;
-}
-
-.menu .menu .menu {
-	top: 0;
-	left: 100%;
 }
 
 .item {
@@ -22,33 +16,29 @@
 
 .label {
 	display: flex;
-	justify-content: space-between;
 	width: 100%;
 	text-align: left;
-	padding: .75rem;
-	background-color: #ddd;
+	padding: .5rem 1rem;
+	background-color: var(--gray-8);
+	color: var(--gray-1);
+	font-weight: 600;
+	font-size: .875rem;
+	line-height: 1.5rem;
 }
 
 .label:hover {
-	background-color: #ccc;
+	background-color: var(--gray-9);;
 }
 
 .item.has-menu > .label::after {
 	content: '\25be';
-}
-
-.menu .menu .item.has-menu > .label::after {
-	content: '\25b8';
+	margin-left: .25rem;
 }
 
 .item.has-menu > .label[aria-expanded='true'] {
-	background-color: #ccc;
+	background-color: var(--gray-9);;
 }
 
 .item.has-menu > .label[aria-expanded='true']::after {
 	content: '\25b4';
-}
-
-.menu .menu .item.has-menu > .label[aria-expanded='true']::after {
-	content: '\25c2';
 }

@@ -3,27 +3,15 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="../resources/reset.css">
+	<link rel="stylesheet" href="../resources/css/reset.css">
+	<link rel="stylesheet" href="../resources/css/colors.css">
 	<link rel="stylesheet" href="./index.css">
+	<title>Accessible Menu - Example A</title>
 </head>
 <body>
 	<div class="menu">
 		<div class="item">
 			<a class="label" href="#">Lorem Ipsum</a>
-		</div>
-
-		<div class="item has-menu">
-			<button class="label">Dolor Sit</button>
-
-			<div class="menu">
-				<div class="item">
-					<a class="label" href="#">Amet Consectetur</a>
-				</div>
-
-				<div class="item">
-					<a class="label" href="#">Adipiscing Elit</a>
-				</div>
-			</div>
 		</div>
 
 		<div class="item has-menu">
@@ -38,28 +26,34 @@
 					<a class="label" href="/">Aliquam Euismod</a>
 				</div>
 
-				<div class="item has-menu">
-					<button class="label">Purus Augue</button>
+				<div class="item">
+					<a class="label" href="/">Blandit Enim</a>
+				</div>
 
-					<div class="menu">
-						<div class="item">
-							<a class="label" href="/">Blandit Enim</a>
-						</div>
+				<div class="item">
+					<a class="label" href="/">Eros Mauris</a>
+				</div>
 
-						<div class="item has-menu">
-							<button class="label">Eu Elementum</button>
+				<div class="item">
+					<a class="label" href="/">Eget Leo</a>
+				</div>
+			</div>
+		</div>
 
-							<div class="menu">
-								<div class="item">
-									<a class="label" href="/">Eros Mauris</a>
-								</div>
+		<div class="item has-menu">
+			<button class="label">Dolor Sit</button>
 
-								<div class="item">
-									<a class="label" href="/">Eget Leo</a>
-								</div>
-							</div>
-						</div>
-					</div>
+			<div class="menu">
+				<div class="item">
+					<a class="label" href="#">Bibendum Id</a>
+				</div>
+
+				<div class="item">
+					<a class="label" href="#">Amet Consectetur</a>
+				</div>
+
+				<div class="item">
+					<a class="label" href="#">Adipiscing Elit</a>
 				</div>
 			</div>
 		</div>
@@ -69,6 +63,7 @@
 		</div>
 	</div>
 
+	<script src="../resources/js/focus-visible.js"></script>
 	<script src="../../index.js"></script>
 
 	<script>

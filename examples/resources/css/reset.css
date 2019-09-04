@@ -85,3 +85,7 @@ td {
 	border-spacing: 0;
 	text-align: left;
 }
+
+.js-focus-visible :focus:not(.focus-visible) {
+	outline: none;
+}
