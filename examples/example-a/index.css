@@ -1,0 +1,54 @@
+.menu {
+	display: flex;
+	background-color: #ddd;
+}
+
+.menu .menu {
+	display: none;
+	min-width: 12rem;
+	position: absolute;
+	top: 100%;
+	left: 0;
+}
+
+.menu .menu .menu {
+	top: 0;
+	left: 100%;
+}
+
+.item {
+	position: relative;
+}
+
+.label {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	text-align: left;
+	padding: .75rem;
+	background-color: #ddd;
+}
+
+.label:hover {
+	background-color: #ccc;
+}
+
+.item.has-menu > .label::after {
+	content: '\25be';
+}
+
+.menu .menu .item.has-menu > .label::after {
+	content: '\25b8';
+}
+
+.item.has-menu > .label[aria-expanded='true'] {
+	background-color: #ccc;
+}
+
+.item.has-menu > .label[aria-expanded='true']::after {
+	content: '\25b4';
+}
+
+.menu .menu .item.has-menu > .label[aria-expanded='true']::after {
+	content: '\25c2';
+}
