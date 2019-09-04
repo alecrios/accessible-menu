@@ -5,101 +5,140 @@ interface Item {
 }
 
 class Menu {
+	/** The parent menu. */
 	private parent: Menu;
 
+	/** Whether this is the highest-level menu. */
 	private isRoot: boolean;
 
+	/** Whether this menu is in the open state. */
 	private isOpen: boolean;
 
+	/** The menu element. */
 	private menu: HTMLElement;
 
+	/** The label element. */
 	private label: HTMLElement;
 
+	/** The items which belong to this menu. */
 	private items: Item[];
 
+	/** The bound function which closes the menu if an external click is detected. */
 	private closeOnOutsideClickBound: EventListenerObject;
 
 	constructor(menu, label, parent) {
+		// Define the class properties.
 		this.parent = parent;
 		this.isRoot = !this.parent;
 		this.isOpen = this.isRoot;
 		this.menu = menu;
 		this.label = label;
 		this.items = Array.from(Menu.getMenuItems(this.menu)).map(this.createItem.bind(this));
-		this.menu.id = this.menu.id || Menu.generateUniqueID();
 		this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
 
+		// Configure the menu element.
+		this.menu.id = this.menu.id || Menu.generateUniqueID();
 		this.menu.setAttribute('role', this.isRoot ? 'menubar' : 'menu');
 		this.menu.setAttribute(...Menu.getMenuAriaLabel(this.menu, this.label));
 	}
 
-	createItem(item: HTMLElement, index: number): Item {
-		const label = Menu.getItemLabel(item);
-		const menu = Menu.getItemMenu(item);
+	createItem(element: HTMLElement, index: number): Item {
+		// Get references to the item components.
+		const label = Menu.getItemLabel(element);
+		const menu = Menu.getItemMenu(element);
 
+		// Configure the label element.
 		label.tabIndex = Menu.getItemTabIndex(index, this.isRoot);
 		label.dataset.index = String(index);
 		label.setAttribute('role', 'menuitem');
 		label.addEventListener('keydown', this.keydownHandler.bind(this));
 
-		return {
-			element: item,
-			label,
-			menu: menu ? this.createMenu(menu, label) : null,
-		};
+		// Return the Item, only creating a new Menu if a menu element was found.
+		return {element, label, menu: menu ? this.createMenu(menu, label) : null};
 	}
 
 	createMenu(menu: HTMLElement, label: HTMLElement): Menu {
+		// Generate unique IDs for the label and menu.
 		const labelID = Menu.generateUniqueID();
 		const menuID = Menu.generateUniqueID();
 
+		// Configure the label element.
 		label.id = labelID;
 		label.setAttribute('aria-haspopup', 'true');
 		label.setAttribute('aria-controls', menuID);
 		label.setAttribute('aria-expanded', 'false');
 		label.addEventListener('click', this.clickHandler.bind(this));
+
+		// Configure the menu element.
 		menu.id = menuID;
 		menu.style.display = 'none';
 
+		// Return a newly created Menu.
 		return new Menu(menu, label, this);
 	}
 
 	clickHandler(event: MouseEvent): void {
+		// Prevent propagation of this click event.
 		event.stopPropagation();
 
+		// Determine the index and the menu for this item.
 		const target = event.target as HTMLElement;
 		const index = Number(target.dataset.index);
 		const menu = this.items[index].menu;
 
+		// Focus the label that was clicked.
 		this.focusItem(index);
+
+		// Toggle the visibility state of the menu.
 		menu.isOpen ? menu.closeMenu() : menu.openMenu();
 	}
 
 	openMenu(): void {
-		if (this.isRoot || !this.menu) return;
+		// Only continue if there is a menu able to be opened.
+		if (this.isRoot || !this.menu || this.isOpen) return;
 
+		// Close any open sibling menus.
 		this.closeSiblingMenus();
+
+		// Update the label and menu elements.
 		this.label.setAttribute('aria-expanded', 'true');
 		this.menu.style.display = 'block';
-		this.isOpen = true;
+
+		// Move the focus.
 		this.focusFirstItem();
+
+		// Update the menu visibility state.
+		this.isOpen = true;
+
+		// Start listening for outside clicks.
 		document.addEventListener('click', this.closeOnOutsideClickBound);
 	}
 
 	closeMenu(): void {
-		if (this.isRoot || !this.menu) return;
+		// Only continue if there is a menu able to be closed.
+		if (this.isRoot || !this.menu || !this.isOpen) return;
 
-		this.label.focus();
+		// Close any open child menus.
+		this.closeChildMenus();
+
+		// Update the label and menu elements.
 		this.label.setAttribute('aria-expanded', 'false');
 		this.menu.style.display = 'none';
+
+		// Move the focus.
+		this.label.focus();
+
+		// Update the menu visibility state.
 		this.isOpen = false;
+
+		// Stop listening for outside clicks.
 		document.removeEventListener('click', this.closeOnOutsideClickBound);
-		this.closeChildMenus();
 	}
 
 	closeSiblingMenus(): void {
 		this.parent.items.forEach((item) => {
-			if (item.menu === this || !item.menu || !item.menu.isOpen) return;
+			// Only continue if this item is a sibling and has a menu.
+			if (item.menu === this || !item.menu) return;
 
 			item.menu.closeMenu();
 		});
@@ -107,13 +146,15 @@ class Menu {
 
 	closeChildMenus(): void {
 		this.items.forEach((item) => {
-			if (item.menu) {
-				item.menu.closeMenu();
-			}
+			// Only continue if this item has a menu.
+			if (!item.menu) return;
+
+			item.menu.closeMenu();
 		});
 	}
 
 	closeParentMenus(): void {
+		// Only continue if the parent is able to be closed.
 		if (this.isRoot || this.parent.isRoot) return;
 
 		this.parent.closeMenu();
@@ -121,6 +162,7 @@ class Menu {
 	}
 
 	keydownHandler(event: KeyboardEvent): void {
+		// Determine the key that was pressed and the index of the label it was pressed on.
 		const key = event.key;
 		const target = event.target as HTMLElement;
 		const index = Number(target.dataset.index);
@@ -146,6 +188,7 @@ class Menu {
 	closeOnOutsideClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
 
+		// Only continue if the click target is not a descendent of the menu or label.
 		if (target.closest(`#${this.menu.id}`) || target.closest(`#${this.label.id}`)) return;
 
 		this.closeMenu();
@@ -170,6 +213,7 @@ class Menu {
 	focusItem(index: number): void {
 		const label = this.items[index].label;
 
+		// Employ roving tabindex for the root menu.
 		if (this.isRoot) {
 			this.resetTabIndeces();
 			label.tabIndex = 0;
