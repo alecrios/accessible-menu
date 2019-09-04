@@ -149,4 +149,4 @@ To attach behavior to a menu, simply instantiate a new `Menu` with the root menu
 new Menu(document.querySelector('.menu'));
 ```
 
-[See full examples &raquo;](./examples]
+[See full examples &raquo;](./examples)
