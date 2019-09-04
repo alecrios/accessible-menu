@@ -1,0 +1,57 @@
+.menu {
+	justify-content: center;
+	background-color: var(--gray-8);
+}
+
+.menu .menu {
+	display: none;
+	padding: .375rem 0;
+	background-color: var(--gray-9);
+	position: relative;
+}
+
+.menu .menu::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: .75rem;
+	background: linear-gradient(180deg, rgba(0, 0, 0, .25), transparent);
+}
+
+.item {
+	border-top: .0625rem solid var(--gray-7);
+}
+
+.menu .menu .item {
+	border-top: none;
+}
+
+.label {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	text-align: left;
+	padding: .75rem 1.5rem;
+	background-color: var(--gray-8);
+	color: var(--gray-2);
+	font-weight: 600;
+	font-size: .875rem;
+	line-height: 1.5rem;
+}
+
+.menu .menu .label {
+	padding: .375rem .375rem .375rem 2.25rem;
+	background-color: var(--gray-9);
+	color: var(--gray-5);
+}
+
+.item.has-menu > .label::after {
+	content: '\25be';
+	margin-left: .25rem;
+}
+
+.item.has-menu > .label[aria-expanded='true']::after {
+	content: '\25b4';
+}
