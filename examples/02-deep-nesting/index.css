@@ -1,0 +1,57 @@
+.menu {
+	display: flex;
+	background-color: var(--gray-9);
+}
+
+.menu .menu {
+	display: none;
+	width: 12rem;
+	position: absolute;
+}
+
+.menu .menu .menu {
+	top: 0;
+	left: 100%;
+}
+
+.item {
+	position: relative;
+}
+
+.label {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	text-align: left;
+	padding: .375rem .75rem;
+	background-color: var(--gray-9);
+	color: var(--gray-1);
+	font-weight: 500;
+	font-size: .875rem;
+	line-height: 1.5rem;
+}
+
+.label:hover {
+	background-color: var(--gray-8);;
+}
+
+.item.has-menu > .label::after {
+	content: '\25be';
+	margin-left: .25rem;
+}
+
+.menu .menu .item.has-menu > .label::after {
+	content: '\25b8';
+}
+
+.item.has-menu > .label[aria-expanded='true'] {
+	background-color: var(--gray-8);;
+}
+
+.item.has-menu > .label[aria-expanded='true']::after {
+	content: '\25b4';
+}
+
+.menu .menu .item.has-menu > .label[aria-expanded='true']::after {
+	content: '\25c2';
+}
