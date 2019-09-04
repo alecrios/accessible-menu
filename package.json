@@ -1,0 +1,27 @@
+{
+	"name": "accessible-menu",
+	"version": "1.0.0",
+	"description": "A JavaScript class which attaches navigation menu behavior to markup.",
+	"scripts": {
+		"build": "tsc accessible-menu.ts --target es6",
+		"lint": "eslint --ext .ts --ignore-path .gitignore ."
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/alecrios/accessible-menu.git"
+	},
+	"author": "Alec Rios",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/alecrios/accessible-menu/issues"
+	},
+	"homepage": "https://github.com/alecrios/accessible-menu#readme",
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^2.1.0",
+		"@typescript-eslint/parser": "^2.1.0",
+		"eslint": "^6.1.0",
+		"eslint-config-airbnb-base": "^14.0.0",
+		"eslint-plugin-import": "^2.18.2",
+		"typescript": "^3.6.2"
+	}
+}
