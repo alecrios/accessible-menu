@@ -1,34 +1,3 @@
-const isPrintableCharacter = (string) => string.length === 1 && string.match(/\S/);
-
-const generateUniqueID = () => `menu-${Math.random().toString(36).substr(2, 9)}`;
-
-const getFirstCharacter = (element) => element.textContent.substring(0, 1);
-
-const getItemTabIndex = (index, isInRootMenu) => {
-	// Items in children menus are only ever focusable programmatically
-	if (!isInRootMenu) return -1;
-
-	// Items in the root menu have a dynamic tabIndex, but initially only the first item is focusable
-	return index === 0 ? 0 : -1;
-};
-
-const getMenuAriaLabel = (menu, label) => {
-	const ariaLabel = menu.getAttribute('aria-label');
-
-	// If an aria label exists, use it
-	if (ariaLabel) {
-		return ['aria-label', ariaLabel];
-	}
-
-	// If a label exists, use it to label the menu
-	if (label) {
-		return ['aria-labelledby', label.id];
-	}
-
-	// Resort to a hardcoded aria label
-	return ['aria-label', 'Menu'];
-};
-
 class Menu {
 	constructor(menu, label, parent) {
 		this.parent = parent;
@@ -37,11 +6,11 @@ class Menu {
 		this.menu = menu;
 		this.label = label;
 		this.items = Array.from(this.getMenuItems()).map((item) => ({element: item}));
-		this.menu.id = this.menu.id || generateUniqueID();
-		this.xxx = this.closeOnOutsideClick.bind(this);
+		this.menu.id = this.menu.id || Menu.generateUniqueID();
+		this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
 
 		this.menu.setAttribute('role', this.isRoot ? 'menubar' : 'menu');
-		this.menu.setAttribute(...getMenuAriaLabel(this.menu, this.label));
+		this.menu.setAttribute(...Menu.getMenuAriaLabel(this.menu, this.label));
 		this.items.forEach((item, index) => this.processItem(item, index));
 	}
 
@@ -59,12 +28,12 @@ class Menu {
 
 	processItem(item, index) {
 		const label = this.getItemLabel(item);
-		const labelID = generateUniqueID();
+		const labelID = Menu.generateUniqueID();
 		const menu = this.getItemMenu(item);
-		const menuID = generateUniqueID();
+		const menuID = Menu.generateUniqueID();
 
 		label.id = labelID;
-		label.tabIndex = getItemTabIndex(index, this.isRoot);
+		label.tabIndex = Menu.getItemTabIndex(index, this.isRoot);
 		label.dataset.index = index;
 		label.setAttribute('role', 'menuitem');
 		label.addEventListener('keydown', this.keydownHandler.bind(this));
@@ -103,7 +72,7 @@ class Menu {
 		this.menu.style.display = 'block';
 		this.isOpen = true;
 		this.focusFirstItem();
-		document.addEventListener('click', this.xxx);
+		document.addEventListener('click', this.closeOnOutsideClickBound);
 	}
 
 	closeMenu() {
@@ -113,7 +82,7 @@ class Menu {
 		this.label.setAttribute('aria-expanded', 'false');
 		this.menu.style.display = 'none';
 		this.isOpen = false;
-		document.removeEventListener('click', this.xxx);
+		document.removeEventListener('click', this.closeOnOutsideClickBound);
 		this.closeChildMenus();
 	}
 
@@ -157,7 +126,7 @@ class Menu {
 			this.focusFirstItem();
 		} else if (key === 'End' || key === 'PageDown') {
 			this.focusLastItem();
-		} else if (isPrintableCharacter(key)) {
+		} else if (Menu.isPrintableCharacter(key)) {
 			this.focusNextCharacterMatch(index, key);
 		}
 	}
@@ -207,38 +176,75 @@ class Menu {
 	}
 
 	focusNextCharacterMatch(currentIndex, character) {
-		// Define search bounds
+		// Define search bounds.
 		const startIndex = currentIndex + 1;
 		const endIndex = this.items.length;
 
-		// Search for a match after the current item
+		// Search for a match after the current item.
 		let matchIndex = this.getNextCharacterMatch(character, startIndex, endIndex);
 
-		// If not found, search for a match before the current item
+		// If not found, search for a match before the current item.
 		if (matchIndex === -1) {
 			matchIndex = this.getNextCharacterMatch(character, 0, currentIndex);
 		}
 
-		// If found, focus the item
+		// If found, focus the item.
 		if (matchIndex !== -1) {
 			this.focusItem(matchIndex);
 		}
 	}
 
 	getNextCharacterMatch(character, startIndex, endIndex) {
-		// Iterate through the specified range
+		// Iterate through the specified range.
 		for (let index = startIndex; index < endIndex; index += 1) {
-			// Get the first character of this menu item
+			// Get the first character of this menu item.
 			const label = this.getItemLabel(this.items[index]);
-			const firstCharacter = getFirstCharacter(label);
+			const firstCharacter = Menu.getFirstCharacter(label);
 
-			// If the first character is a match, return the index
+			// If the first character is a match, return the index.
 			if (firstCharacter.toLowerCase() === character.toLowerCase()) {
 				return index;
 			}
 		}
 
-		// No match found
+		// No match found.
 		return -1;
+	}
+
+	static generateUniqueID() {
+		return `menu-${Math.random().toString(36).substr(2, 9)}`;
+	}
+
+	static isPrintableCharacter(string) {
+		return string.length === 1 && string.match(/\S/);
+	}
+
+	static getFirstCharacter(element) {
+		return element.textContent.substring(0, 1);
+	}
+
+	static getItemTabIndex(index, isInRootMenu) {
+		// Items in children menus are only ever focusable programmatically.
+		if (!isInRootMenu) return -1;
+
+		// Items in the root menu have a dynamic tabIndex, but initially only the first item is focusable.
+		return index === 0 ? 0 : -1;
+	}
+
+	static getMenuAriaLabel(menu, label) {
+		const ariaLabel = menu.getAttribute('aria-label');
+
+		// If an aria label exists, use it.
+		if (ariaLabel) {
+			return ['aria-label', ariaLabel];
+		}
+
+		// If a label exists, use it to label the menu.
+		if (label) {
+			return ['aria-labelledby', label.id];
+		}
+
+		// Resort to a hardcoded aria label.
+		return ['aria-label', 'Menu'];
 	}
 }
