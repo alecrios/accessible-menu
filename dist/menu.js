@@ -1,11 +1,11 @@
 class Menu {
-    constructor(menu, label, parent) {
+    constructor(menu, button, parent) {
         // Define the class properties.
         this.parent = parent;
         this.isRoot = !this.parent;
         this.isOpen = this.isRoot;
         this.menu = menu;
-        this.label = label;
+        this.button = button;
         this.items = Array.from(Menu.getMenuItems(this.menu)).map(this.createItem.bind(this));
         this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
         // Configure the menu element.
@@ -15,31 +15,31 @@ class Menu {
     }
     createItem(element, index) {
         // Get references to the item components.
-        const label = Menu.getItemLabel(element);
+        const button = Menu.getItemButton(element);
         const menu = Menu.getItemMenu(element);
-        // Configure the label element.
-        label.tabIndex = Menu.getItemTabIndex(index, this.isRoot);
-        label.dataset.index = String(index);
-        label.setAttribute('role', 'menuitem');
-        label.addEventListener('keydown', this.keydownHandler.bind(this));
+        // Configure the button element.
+        button.tabIndex = Menu.getItemTabIndex(index, this.isRoot);
+        button.dataset.index = String(index);
+        button.setAttribute('role', 'menuitem');
+        button.addEventListener('keydown', this.keydownHandler.bind(this));
         // Return the Item, only creating a new Menu if a menu element was found.
-        return { element, label, menu: menu ? this.createMenu(menu, label) : null };
+        return { element, button, menu: menu ? this.createMenu(menu, button) : null };
     }
-    createMenu(menu, label) {
-        // Generate unique IDs for the label and menu.
-        const labelID = Menu.generateUniqueID();
+    createMenu(menu, button) {
+        // Generate unique IDs for the menu and button.
+        const buttonID = Menu.generateUniqueID();
         const menuID = Menu.generateUniqueID();
-        // Configure the label element.
-        label.id = labelID;
-        label.setAttribute('aria-haspopup', 'true');
-        label.setAttribute('aria-controls', menuID);
-        label.setAttribute('aria-expanded', 'false');
-        label.addEventListener('click', this.clickHandler.bind(this));
+        // Configure the button element.
+        button.id = buttonID;
+        button.setAttribute('aria-haspopup', 'true');
+        button.setAttribute('aria-controls', menuID);
+        button.setAttribute('aria-expanded', 'false');
+        button.addEventListener('click', this.clickHandler.bind(this));
         // Configure the menu element.
         menu.id = menuID;
         menu.style.display = 'none';
         // Return a newly created Menu.
-        return new Menu(menu, label, this);
+        return new Menu(menu, button, this);
     }
     clickHandler(event) {
         // Prevent propagation of this click event.
@@ -48,7 +48,7 @@ class Menu {
         const target = event.target;
         const index = Number(target.dataset.index);
         const menu = this.items[index].menu;
-        // Focus the label that was clicked.
+        // Focus the button that was clicked.
         this.focusItem(index);
         // Toggle the visibility state of the menu.
         menu.isOpen ? menu.closeMenu() : menu.openMenu();
@@ -59,8 +59,8 @@ class Menu {
             return;
         // Close any open sibling menus.
         this.closeSiblingMenus();
-        // Update the label and menu elements.
-        this.label.setAttribute('aria-expanded', 'true');
+        // Update the button and menu elements.
+        this.button.setAttribute('aria-expanded', 'true');
         this.menu.style.display = 'block';
         // Move the focus.
         this.focusFirstItem();
@@ -75,11 +75,11 @@ class Menu {
             return;
         // Close any open child menus.
         this.closeChildMenus();
-        // Update the label and menu elements.
-        this.label.setAttribute('aria-expanded', 'false');
+        // Update the button and menu elements.
+        this.button.setAttribute('aria-expanded', 'false');
         this.menu.style.display = 'none';
         // Move the focus.
-        this.label.focus();
+        this.button.focus();
         // Update the menu visibility state.
         this.isOpen = false;
         // Stop listening for outside clicks.
@@ -109,7 +109,7 @@ class Menu {
         this.parent.closeParentMenus();
     }
     keydownHandler(event) {
-        // Determine the key that was pressed and the index of the label it was pressed on.
+        // Determine the key that was pressed and the index of the button it was pressed on.
         const key = event.key;
         const target = event.target;
         const index = Number(target.dataset.index);
@@ -138,8 +138,8 @@ class Menu {
     }
     closeOnOutsideClick(event) {
         const target = event.target;
-        // Only continue if the click target is not a descendent of the menu or label.
-        if (target.closest(`#${this.menu.id}`) || target.closest(`#${this.label.id}`))
+        // Only continue if the click target is not a descendent of the menu or button.
+        if (target.closest(`#${this.menu.id}`) || target.closest(`#${this.button.id}`))
             return;
         this.closeMenu();
     }
@@ -156,17 +156,17 @@ class Menu {
         this.focusItem(this.items.length - 1);
     }
     focusItem(index) {
-        const label = this.items[index].label;
+        const button = this.items[index].button;
         // Employ roving tabindex for the root menu.
         if (this.isRoot) {
             this.resetTabIndeces();
-            label.tabIndex = 0;
+            button.tabIndex = 0;
         }
-        label.focus();
+        button.focus();
     }
     resetTabIndeces() {
         this.items.forEach((item) => {
-            item.label.tabIndex = -1;
+            item.button.tabIndex = -1;
         });
     }
     focusNextCharacterMatch(currentIndex, character) {
@@ -188,8 +188,8 @@ class Menu {
         // Iterate through the specified range.
         for (let index = startIndex; index < endIndex; index += 1) {
             // Get the first character of this menu item.
-            const label = this.items[index].label;
-            const firstCharacter = Menu.getFirstCharacter(label);
+            const button = this.items[index].button;
+            const firstCharacter = Menu.getFirstCharacter(button);
             // If the first character is a match, return the index.
             if (firstCharacter.toLowerCase() === character.toLowerCase()) {
                 return index;
@@ -201,8 +201,8 @@ class Menu {
     static getMenuItems(menu) {
         return menu.querySelectorAll(':scope > .item');
     }
-    static getItemLabel(item) {
-        return item.querySelector('.label');
+    static getItemButton(item) {
+        return item.querySelector('.button');
     }
     static getItemMenu(item) {
         return item.querySelector('.menu');
@@ -224,15 +224,15 @@ class Menu {
         return index === 0 ? 0 : -1;
     }
     setMenuAriaLabel() {
-        // Always prefer to reference the label, if it exists.
-        if (this.label) {
-            this.menu.setAttribute('aria-labelledby', this.label.id);
+        // Always prefer to reference the button, if it exists.
+        if (this.button) {
+            this.menu.setAttribute('aria-labelledby', this.button.id);
             return;
         }
-        // If there is no label, but there is an aria label, do not change it.
+        // If there is no button, but there is an aria label, do not change it.
         if (this.menu.getAttribute('aria-label'))
             return;
-        // If there is no label or aria label, resort to a hardcoded aria label.
+        // If there is no button or aria label, resort to a hardcoded aria label.
         this.menu.setAttribute('aria-label', 'Menu');
     }
 }

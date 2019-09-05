@@ -38,7 +38,7 @@
 	border-top: none;
 }
 
-.label {
+.button {
 	display: flex;
 	justify-content: space-between;
 	width: 100%;
@@ -51,17 +51,17 @@
 	line-height: 1.5rem;
 }
 
-.menu .menu .label {
+.menu .menu .button {
 	padding: .375rem .375rem .375rem 3rem;
 	background-color: var(--gray-9);
 	color: var(--gray-5);
 }
 
-.item.has-menu > .label::after {
+.item.has-menu > .button::after {
 	content: '\25be';
 	margin-left: .25rem;
 }
 
-.item.has-menu > .label[aria-expanded='true']::after {
+.item.has-menu > .button[aria-expanded='true']::after {
 	content: '\25b4';
 }
