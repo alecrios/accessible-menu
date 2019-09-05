@@ -10,7 +10,7 @@ class Menu {
         this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
         // Configure the menu element.
         this.menu.id = this.menu.id || Menu.generateUniqueID();
-        this.menu.setAttribute('role', this.isRoot ? 'menubar' : 'menu');
+        this.menu.setAttribute('role', 'menu');
         this.menu.setAttribute(...Menu.getMenuAriaLabel(this.menu, this.label));
     }
     createItem(element, index) {
