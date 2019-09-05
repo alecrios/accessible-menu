@@ -5,7 +5,7 @@
 
 .menu .menu {
 	display: none;
-	padding: .375rem 0;
+	padding: .75rem 0;
 	background-color: var(--gray-9);
 	position: relative;
 }
@@ -17,7 +17,17 @@
 	left: 0;
 	width: 100%;
 	height: .75rem;
-	background: linear-gradient(180deg, rgba(0, 0, 0, .25), transparent);
+	background: linear-gradient(180deg, rgba(0, 0, 0, .125), transparent);
+}
+
+.menu .menu::after {
+	content: '';
+	position: absolute;
+	top: 1.5rem;
+	left: 1.5rem;
+	width: 0;
+	height: calc(100% - 3rem);
+	border-left: .0625rem solid var(--gray-8);
 }
 
 .item {
@@ -42,7 +52,7 @@
 }
 
 .menu .menu .label {
-	padding: .375rem .375rem .375rem 2.25rem;
+	padding: .375rem .375rem .375rem 3rem;
 	background-color: var(--gray-9);
 	color: var(--gray-5);
 }
