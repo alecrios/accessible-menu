@@ -26,7 +26,7 @@ class Menu {
 	/** The bound function which closes the menu if an external click is detected. */
 	private closeOnOutsideClickBound: EventListenerObject;
 
-	constructor(menu, label, parent) {
+	constructor(menu: HTMLElement, label?: HTMLElement, parent?: Menu) {
 		// Define the class properties.
 		this.parent = parent;
 		this.isRoot = !this.parent;
@@ -38,11 +38,11 @@ class Menu {
 
 		// Configure the menu element.
 		this.menu.id = this.menu.id || Menu.generateUniqueID();
-		this.menu.setAttribute('role', this.isRoot ? 'menubar' : 'menu');
+		this.menu.setAttribute('role', 'menu');
 		this.menu.setAttribute(...Menu.getMenuAriaLabel(this.menu, this.label));
 	}
 
-	createItem(element: HTMLElement, index: number): Item {
+	private createItem(element: HTMLElement, index: number): Item {
 		// Get references to the item components.
 		const label = Menu.getItemLabel(element);
 		const menu = Menu.getItemMenu(element);
@@ -57,7 +57,7 @@ class Menu {
 		return {element, label, menu: menu ? this.createMenu(menu, label) : null};
 	}
 
-	createMenu(menu: HTMLElement, label: HTMLElement): Menu {
+	private createMenu(menu: HTMLElement, label: HTMLElement): Menu {
 		// Generate unique IDs for the label and menu.
 		const labelID = Menu.generateUniqueID();
 		const menuID = Menu.generateUniqueID();
@@ -77,7 +77,7 @@ class Menu {
 		return new Menu(menu, label, this);
 	}
 
-	clickHandler(event: MouseEvent): void {
+	private clickHandler(event: MouseEvent): void {
 		// Prevent propagation of this click event.
 		event.stopPropagation();
 
@@ -93,7 +93,7 @@ class Menu {
 		menu.isOpen ? menu.closeMenu() : menu.openMenu();
 	}
 
-	openMenu(): void {
+	private openMenu(): void {
 		// Only continue if there is a menu able to be opened.
 		if (this.isRoot || !this.menu || this.isOpen) return;
 
@@ -114,7 +114,7 @@ class Menu {
 		document.addEventListener('click', this.closeOnOutsideClickBound);
 	}
 
-	closeMenu(): void {
+	private closeMenu(): void {
 		// Only continue if there is a menu able to be closed.
 		if (this.isRoot || !this.menu || !this.isOpen) return;
 
@@ -135,7 +135,7 @@ class Menu {
 		document.removeEventListener('click', this.closeOnOutsideClickBound);
 	}
 
-	closeSiblingMenus(): void {
+	private closeSiblingMenus(): void {
 		this.parent.items.forEach((item) => {
 			// Only continue if this item is a sibling and has a menu.
 			if (item.menu === this || !item.menu) return;
@@ -144,7 +144,7 @@ class Menu {
 		});
 	}
 
-	closeChildMenus(): void {
+	private closeChildMenus(): void {
 		this.items.forEach((item) => {
 			// Only continue if this item has a menu.
 			if (!item.menu) return;
@@ -153,7 +153,7 @@ class Menu {
 		});
 	}
 
-	closeParentMenus(): void {
+	private closeParentMenus(): void {
 		// Only continue if the parent is able to be closed.
 		if (this.isRoot || this.parent.isRoot) return;
 
@@ -161,7 +161,7 @@ class Menu {
 		this.parent.closeParentMenus();
 	}
 
-	keydownHandler(event: KeyboardEvent): void {
+	private keydownHandler(event: KeyboardEvent): void {
 		// Determine the key that was pressed and the index of the label it was pressed on.
 		const key = event.key;
 		const target = event.target as HTMLElement;
@@ -185,7 +185,7 @@ class Menu {
 		}
 	}
 
-	closeOnOutsideClick(event: MouseEvent): void {
+	private closeOnOutsideClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
 
 		// Only continue if the click target is not a descendent of the menu or label.
@@ -194,23 +194,23 @@ class Menu {
 		this.closeMenu();
 	}
 
-	focusPreviousItem(currentIndex: number): void {
+	private focusPreviousItem(currentIndex: number): void {
 		this.focusItem(currentIndex === 0 ? this.items.length - 1 : currentIndex - 1);
 	}
 
-	focusNextItem(currentIndex: number): void {
+	private focusNextItem(currentIndex: number): void {
 		this.focusItem(currentIndex === this.items.length - 1 ? 0 : currentIndex + 1);
 	}
 
-	focusFirstItem(): void {
+	private focusFirstItem(): void {
 		this.focusItem(0);
 	}
 
-	focusLastItem(): void {
+	private focusLastItem(): void {
 		this.focusItem(this.items.length - 1);
 	}
 
-	focusItem(index: number): void {
+	private focusItem(index: number): void {
 		const label = this.items[index].label;
 
 		// Employ roving tabindex for the root menu.
@@ -222,13 +222,13 @@ class Menu {
 		label.focus();
 	}
 
-	resetTabIndeces(): void {
+	private resetTabIndeces(): void {
 		this.items.forEach((item) => {
 			item.label.tabIndex = -1;
 		});
 	}
 
-	focusNextCharacterMatch(currentIndex: number, character: string): void {
+	private focusNextCharacterMatch(currentIndex: number, character: string): void {
 		// Define search bounds.
 		const startIndex = currentIndex + 1;
 		const endIndex = this.items.length;
@@ -247,7 +247,7 @@ class Menu {
 		}
 	}
 
-	getNextCharacterMatch(character: string, startIndex: number, endIndex: number): number {
+	private getNextCharacterMatch(character: string, startIndex: number, endIndex: number): number {
 		// Iterate through the specified range.
 		for (let index = startIndex; index < endIndex; index += 1) {
 			// Get the first character of this menu item.
@@ -264,31 +264,31 @@ class Menu {
 		return -1;
 	}
 
-	static getMenuItems(menu: HTMLElement): NodeListOf<HTMLElement> {
+	private static getMenuItems(menu: HTMLElement): NodeListOf<HTMLElement> {
 		return menu.querySelectorAll(':scope > .item');
 	}
 
-	static getItemLabel(item: HTMLElement): HTMLElement {
+	private static getItemLabel(item: HTMLElement): HTMLElement {
 		return item.querySelector('.label');
 	}
 
-	static getItemMenu(item: HTMLElement): HTMLElement {
+	private static getItemMenu(item: HTMLElement): HTMLElement {
 		return item.querySelector('.menu');
 	}
 
-	static generateUniqueID(): string {
+	private static generateUniqueID(): string {
 		return `menu-${Math.random().toString(36).substr(2, 9)}`;
 	}
 
-	static isPrintableCharacter(string: string): boolean {
+	private static isPrintableCharacter(string: string): boolean {
 		return string.length === 1 && string.match(/\S/) !== null;
 	}
 
-	static getFirstCharacter(element: HTMLElement): string {
+	private static getFirstCharacter(element: HTMLElement): string {
 		return element.textContent.substring(0, 1);
 	}
 
-	static getItemTabIndex(index: number, isInRootMenu: boolean): number {
+	private static getItemTabIndex(index: number, isInRootMenu: boolean): number {
 		// Children menu items are only ever focusable programmatically.
 		if (!isInRootMenu) return -1;
 
@@ -296,7 +296,7 @@ class Menu {
 		return index === 0 ? 0 : -1;
 	}
 
-	static getMenuAriaLabel(menu: HTMLElement, label: HTMLElement): [string, string] {
+	private static getMenuAriaLabel(menu: HTMLElement, label: HTMLElement): [string, string] {
 		const ariaLabel = menu.getAttribute('aria-label');
 
 		// If an aria label exists, use it.
