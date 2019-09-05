@@ -5,20 +5,26 @@ interface Item {
 }
 
 class Menu {
+	/** The menu element. */
+	private menu: HTMLElement;
+
+	/** The button element. */
+	private button: HTMLElement;
+
 	/** The parent menu. */
 	private parent: Menu;
 
 	/** Whether this is the highest-level menu. */
 	private isRoot: boolean;
 
+	/** Whether this can be opened and closed. */
+	private isToggleable: boolean;
+
+	/** Whether this has a toggling button outside the menu. */
+	private hasExternalButton: boolean;
+
 	/** Whether this menu is in the open state. */
 	private isOpen: boolean;
-
-	/** The menu element. */
-	private menu: HTMLElement;
-
-	/** The button element. */
-	private button: HTMLElement;
 
 	/** The items which belong to this menu. */
 	private items: Item[];
@@ -28,18 +34,59 @@ class Menu {
 
 	constructor(menu: HTMLElement, button?: HTMLElement, parent?: Menu) {
 		// Define the class properties.
-		this.parent = parent;
-		this.isRoot = !this.parent;
-		this.isOpen = this.isRoot;
 		this.menu = menu;
 		this.button = button;
+		this.parent = parent;
+		this.isRoot = !this.parent;
+		this.isToggleable = !!this.button;
+		this.hasExternalButton = this.isRoot && this.isToggleable;
+		this.isOpen = !this.isToggleable;
 		this.items = Array.from(Menu.getMenuItems(this.menu)).map(this.createItem.bind(this));
 		this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
 
-		// Configure the menu element.
-		this.menu.id = this.menu.id || Menu.generateUniqueID();
-		this.menu.setAttribute('role', 'menu');
+		// Configure elements.
+		this.setMenuAndButtonID();
+		this.setMenuRole();
 		this.setMenuAriaLabel();
+		this.configureButton();
+	}
+
+	private setMenuAndButtonID(): void {
+		// Prefer to keep the existing ID, but fallback to a random string if necessary.
+		this.menu.id = this.menu.id || Menu.generateUniqueID();
+
+		if (!this.hasExternalButton) return;
+
+		// Prefer to keep the existing ID, but fallback to a random string if necessary.
+		this.button.id = this.button.id || Menu.generateUniqueID();
+	}
+
+	private setMenuRole(): void {
+		// If the menu is toggleable, `menu`. If it's visually persistent, `menubar`.
+		this.menu.setAttribute('role', this.isToggleable ? 'menu' : 'menubar');
+	}
+
+	private setMenuAriaLabel(): void {
+		// Always prefer to reference the button, if it exists.
+		if (this.button) {
+			this.menu.setAttribute('aria-labelledby', this.button.id);
+			return;
+		}
+
+		// If there is no button, but there is an aria label, do not change it.
+		if (this.menu.getAttribute('aria-label')) return;
+
+		// If there is no button or aria label, resort to a hardcoded aria label.
+		this.menu.setAttribute('aria-label', 'Menu');
+	}
+
+	private configureButton(): void {
+		if (!this.hasExternalButton) return;
+
+		this.button.setAttribute('aria-haspopup', 'true');
+		this.button.setAttribute('aria-expanded', 'false');
+		this.button.setAttribute('aria-controls', this.menu.id);
+		this.button.addEventListener('click', this.menuButtonClickHandler.bind(this));
 	}
 
 	private createItem(element: HTMLElement, index: number): Item {
@@ -67,7 +114,7 @@ class Menu {
 		button.setAttribute('aria-haspopup', 'true');
 		button.setAttribute('aria-controls', menuID);
 		button.setAttribute('aria-expanded', 'false');
-		button.addEventListener('click', this.clickHandler.bind(this));
+		button.addEventListener('click', this.buttonClickHandler.bind(this));
 
 		// Configure the menu element.
 		menu.id = menuID;
@@ -77,7 +124,12 @@ class Menu {
 		return new Menu(menu, button, this);
 	}
 
-	private clickHandler(event: MouseEvent): void {
+	private menuButtonClickHandler(): void {
+		// Toggle the visibility state of the menu.
+		this.isOpen ? this.closeMenu() : this.openMenu();
+	}
+
+	private buttonClickHandler(event: MouseEvent): void {
 		// Prevent propagation of this click event.
 		event.stopPropagation();
 
@@ -95,7 +147,7 @@ class Menu {
 
 	private openMenu(): void {
 		// Only continue if there is a menu able to be opened.
-		if (this.isRoot || !this.menu || this.isOpen) return;
+		if (!this.menu || !this.isToggleable || this.isOpen) return;
 
 		// Close any open sibling menus.
 		this.closeSiblingMenus();
@@ -116,7 +168,7 @@ class Menu {
 
 	private closeMenu(): void {
 		// Only continue if there is a menu able to be closed.
-		if (this.isRoot || !this.menu || !this.isOpen) return;
+		if (!this.menu || !this.isToggleable || !this.isOpen) return;
 
 		// Close any open child menus.
 		this.closeChildMenus();
@@ -136,6 +188,8 @@ class Menu {
 	}
 
 	private closeSiblingMenus(): void {
+		if (!this.parent) return;
+
 		this.parent.items.forEach((item) => {
 			// Only continue if this item is a sibling and has a menu.
 			if (item.menu === this || !item.menu) return;
@@ -294,19 +348,5 @@ class Menu {
 
 		// Root menu items have a dynamic tabIndex, but initially only the first item is focusable.
 		return index === 0 ? 0 : -1;
-	}
-
-	private setMenuAriaLabel(): void {
-		// Always prefer to reference the button, if it exists.
-		if (this.button) {
-			this.menu.setAttribute('aria-labelledby', this.button.id);
-			return;
-		}
-
-		// If there is no button, but there is an aria label, do not change it.
-		if (this.menu.getAttribute('aria-label')) return;
-
-		// If there is no button or aria label, resort to a hardcoded aria label.
-		this.menu.setAttribute('aria-label', 'Menu');
 	}
 }

@@ -9,6 +9,8 @@
 	<title>Accessible Menu - Mobile</title>
 </head>
 <body>
+	<button class="burger">Menu</button>
+
 	<div class="menu">
 		<div class="item has-menu">
 			<button class="button">Dolor Sit</button>
@@ -101,6 +103,6 @@
 
 	<script src="../_assets/js/focus-visible.js"></script>
 	<script src="../../dist/menu.js"></script>
-	<script>new Menu(document.querySelector('.menu'));</script>
+	<script>new Menu(document.querySelector('.menu'), document.querySelector('.burger'));</script>
 </body>
 </html>
