@@ -11,7 +11,7 @@ class Menu {
         // Configure the menu element.
         this.menu.id = this.menu.id || Menu.generateUniqueID();
         this.menu.setAttribute('role', 'menu');
-        this.menu.setAttribute(...Menu.getMenuAriaLabel(this.menu, this.label));
+        this.setMenuAriaLabel();
     }
     createItem(element, index) {
         // Get references to the item components.
@@ -223,17 +223,16 @@ class Menu {
         // Root menu items have a dynamic tabIndex, but initially only the first item is focusable.
         return index === 0 ? 0 : -1;
     }
-    static getMenuAriaLabel(menu, label) {
-        const ariaLabel = menu.getAttribute('aria-label');
-        // If an aria label exists, use it.
-        if (ariaLabel) {
-            return ['aria-label', ariaLabel];
+    setMenuAriaLabel() {
+        // Always prefer to reference the label, if it exists.
+        if (this.label) {
+            this.menu.setAttribute('aria-labelledby', this.label.id);
+            return;
         }
-        // If a label exists, use it to label the menu.
-        if (label) {
-            return ['aria-labelledby', label.id];
-        }
-        // Resort to a hardcoded aria label.
-        return ['aria-label', 'Menu'];
+        // If there is no label, but there is an aria label, do not change it.
+        if (this.menu.getAttribute('aria-label'))
+            return;
+        // If there is no label or aria label, resort to a hardcoded aria label.
+        this.menu.setAttribute('aria-label', 'Menu');
     }
 }
