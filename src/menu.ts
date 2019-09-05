@@ -208,8 +208,10 @@ class Menu {
 	}
 
 	private closeParentMenus(): void {
-		if (this.isRoot) return;
+		// Only continue if there is a parent menu to close.
+		if (!this.parent) return;
 
+		// Don't close the parent menu if it is the root menu unless it has an external button.
 		if (this.parent.isRoot && !this.parent.hasExternalButton) return;
 
 		this.parent.closeMenu();
