@@ -10,19 +10,25 @@
 
 ## Terminology
 
+- **Menu Button** - An element which toggles the visibility of a menu.
 - **Menu** - An element which contains items.
 - **Item** - An element which contains a button, and optionally a menu.
-- **Button** - An element which displays text and is actionable (e.g. `<a>` or `<button>`).
+- **Button** - An element which is actionable (e.g. `<a>` or `<button>`).
 
 ## Structure
 
+- A **menu button** may exist.
+- A **menu button**, if present, must exist outside the **menu**.
+- A **menu** must exist.
 - A **menu** must contain one or more **items**.
 - An **item** must contain one and only one **button**.
-- An **item** must contain zero or one **menus**.
+- An **item** may contain one and only one **menus**.
 
 This pattern is infinitely nestable. See the example menu structure below:
 
 ```
+menu button
+
 menu
 ├───item
 │   └───button
@@ -59,10 +65,20 @@ menu
 
 ### Attributes
 
+#### Menu Button
+
+- `id` is set to a randomly-generated string (if no `id` is found).
+- `aria-label` is set to `Menu Button` (if no `aria-label` or `innerText` is found).
+- `role` is set to `button`.
+- `aria-haspopup` is to to `true`.
+- `aria-controls` is set to its menu's `id`.
+- `aria-expanded` is set to `false`.
+- `aria-expanded` is dynamically updated as part of a `expand/collapse` pattern.
+
 #### Menu
 
-- `aria-label` is set to `Menu` (if no value is found).
-- `id` is set to a randomly-generated string (if no value is found).
+- `aria-label` is set to `Menu` (if no `aria-label` is found).
+- `id` is set to a randomly-generated string (if no `id` is found).
 - `role` is set to `menu` (or `menubar` if this menu is the root menu).
 
 #### Item
@@ -121,7 +137,7 @@ When focus is on a button:
 
 The menu markup should be written such that **menu** elements have the class `.menu`, **item** elements have the class `.item`, and **button** elements have the class `.button`.
 
-To attach behavior to a menu, simply instantiate a new `Menu` with the root menu as the only argument. The `Menu` class will recursively construct instances for any child menus.
+To attach behavior to the menu, simply instantiate a new `Menu` with the root menu as the only argument. The `Menu` class will recursively construct instances for any child menus.
 
 ``` html
 <div class="menu">
@@ -137,16 +153,46 @@ To attach behavior to a menu, simply instantiate a new `Menu` with the root menu
 				<a class="button" href="#">Amet Consectetur</a>
 			</div>
 
-			<div class="item">
-				<a class="button" href="#">Adipiscing Elit</a>
-			</div>
+			<!-- More items... -->
 		</div>
 	</div>
+
+	<!-- More items... -->
 </div>
+
+<script>
+	new Menu(document.querySelector('.menu'));
+</script>
 ```
 
+The code above will yield a visually persistent menu, called a menu bar. If instead the menu should be toggleable (e.g. a mobile menu toggled via a hamburger button), pass in an external button as the second argument.
+
 ``` js
-new Menu(document.querySelector('.menu'));
+<button class="hamburger"></button>
+
+<div class="menu">
+	<div class="item">
+		<a class="button" href="#">Lorem Ipsum</a>
+	</div>
+
+	<div class="item">
+		<button class="button">Dolor Sit</button>
+
+		<div class="menu">
+			<div class="item">
+				<a class="button" href="#">Amet Consectetur</a>
+			</div>
+
+			<!-- More items... -->
+		</div>
+	</div>
+
+	<!-- More items... -->
+</div>
+
+<script>
+	new Menu(document.querySelector('.menu'), document.querySelector('.hamburger'));
+</script>
 ```
 
 [See full examples &raquo;](./examples)
