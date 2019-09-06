@@ -1,9 +1,11 @@
+/** An object which manages the data for a menu item. */
 interface Item {
 	element: HTMLElement;
 	button: HTMLElement;
 	menu?: Menu;
 }
 
+/** A class which manages the behavior of a navigational menu system. */
 class Menu {
 	/** The menu element. */
 	private menu: HTMLElement;
@@ -55,6 +57,7 @@ class Menu {
 		// Prefer to keep the existing ID, but fallback to a random string if necessary.
 		this.menu.id = this.menu.id || Menu.generateUniqueID();
 
+		// Only continue if this menu is toggleable via a menu button.
 		if (!this.hasExternalButton) return;
 
 		// Prefer to keep the existing ID, but fallback to a random string if necessary.
@@ -81,12 +84,15 @@ class Menu {
 	}
 
 	private configureButton(): void {
+		// Only continue if a menu button exists.
 		if (!this.hasExternalButton) return;
 
+		// Set the aria label if no discernible text is found.
 		if (!this.button.innerText && !this.button.getAttribute('aria-label')) {
 			this.button.setAttribute('aria-label', 'Menu Button');
 		}
 
+		// Configure the rest of the button's attributes and behavior.
 		this.button.setAttribute('role', 'button');
 		this.button.setAttribute('aria-haspopup', 'true');
 		this.button.setAttribute('aria-expanded', 'false');
@@ -339,7 +345,7 @@ class Menu {
 	}
 
 	private static generateUniqueID(): string {
-		return `menu-${Math.random().toString(36).substr(2, 9)}`;
+		return `m${Math.random().toString(36).substr(2, 9)}`;
 	}
 
 	private static isPrintableCharacter(string: string): boolean {
