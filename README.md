@@ -79,7 +79,7 @@ menu
 
 - `aria-label` is set to `Menu` (if no `aria-label` is found).
 - `id` is set to a randomly-generated string (if no `id` is found).
-- `role` is set to `menu` (or `menubar` if this menu is the root menu).
+- `role` is set to `menubar` (or `menu` if it is toggleable via a menu button).
 
 #### Item
 
@@ -167,7 +167,7 @@ To attach behavior to the menu, simply instantiate a new `Menu` with the root me
 
 The code above will yield a visually persistent menu, called a menu bar. If instead the menu should be toggleable (e.g. a mobile menu toggled via a hamburger button), pass in an external button as the second argument.
 
-``` js
+``` html
 <button class="hamburger"></button>
 
 <div class="menu">
