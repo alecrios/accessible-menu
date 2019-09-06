@@ -1,7 +1,19 @@
-.burger {
-	background-color: var(--gray-2);
-	color: var(--gray-9);
-	padding: .75rem;
+.hamburger {
+	background-color: var(--gray-8);
+	color: var(--gray-2);
+	width: 3rem;
+	height: 3rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.hamburger::before {
+	content: '\2630';
+}
+
+.hamburger[aria-expanded='true']::before {
+	content: '\2715';
 }
 
 .menu {
