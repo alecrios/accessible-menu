@@ -83,6 +83,11 @@ class Menu {
 	private configureButton(): void {
 		if (!this.hasExternalButton) return;
 
+		if (!this.button.innerText && !this.button.getAttribute('aria-label')) {
+			this.button.setAttribute('aria-label', 'Menu Button');
+		}
+
+		this.button.setAttribute('role', 'button');
 		this.button.setAttribute('aria-haspopup', 'true');
 		this.button.setAttribute('aria-expanded', 'false');
 		this.button.setAttribute('aria-controls', this.menu.id);
