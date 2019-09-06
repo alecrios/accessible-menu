@@ -1,3 +1,4 @@
+/** A class which manages the behavior of a navigational menu system. */
 class Menu {
     constructor(menu, button, parent) {
         // Define the class properties.
@@ -19,6 +20,7 @@ class Menu {
     setMenuAndButtonID() {
         // Prefer to keep the existing ID, but fallback to a random string if necessary.
         this.menu.id = this.menu.id || Menu.generateUniqueID();
+        // Only continue if this menu is toggleable via a menu button.
         if (!this.hasExternalButton)
             return;
         // Prefer to keep the existing ID, but fallback to a random string if necessary.
@@ -41,11 +43,14 @@ class Menu {
         this.menu.setAttribute('aria-label', 'Menu');
     }
     configureButton() {
+        // Only continue if a menu button exists.
         if (!this.hasExternalButton)
             return;
+        // Set the aria label if no discernible text is found.
         if (!this.button.innerText && !this.button.getAttribute('aria-label')) {
             this.button.setAttribute('aria-label', 'Menu Button');
         }
+        // Configure the rest of the button's attributes and behavior.
         this.button.setAttribute('role', 'button');
         this.button.setAttribute('aria-haspopup', 'true');
         this.button.setAttribute('aria-expanded', 'false');
@@ -256,7 +261,7 @@ class Menu {
         return item.querySelector('.menu');
     }
     static generateUniqueID() {
-        return `menu-${Math.random().toString(36).substr(2, 9)}`;
+        return `m${Math.random().toString(36).substr(2, 9)}`;
     }
     static isPrintableCharacter(string) {
         return string.length === 1 && string.match(/\S/) !== null;
