@@ -10,19 +10,21 @@
 
 ## Terminology
 
-- **Menu Button** - An element which toggles the visibility of a menu.
-- **Menu** - An element which contains items.
-- **Item** - An element which contains a button, and optionally a menu.
-- **Button** - An element which is actionable (e.g. `<a>` or `<button>`).
+- **Menu** - An element which contains **items**.
+- **Parent Menu** - A **menu** which has at least one **child menu**.
+- **Child Menu** - A **menu** which has a parent menu (also known as a "submenu").
+- **Root Menu** - A **menu** which has no **parent menu**.
+- **Item** - An element within a **menu** which contains a **button**, and optionally, a **child menu**.
+- **Button** - An element within an **item** which triggers an action such as navigating to a link or opening a **child menu**.
+- **Menu Button** - A **button** which toggles the visibility of a **root menu**.
 
 ## Structure
 
+- The **root menu** must exist.
+- The **root menu** must contain at least one **items**.
 - A **menu button** may exist.
-- A **menu button**, if present, must exist outside the **menu**.
-- A **menu** must exist.
-- A **menu** must contain one or more **items**.
-- An **item** must contain one and only one **button**.
-- An **item** may contain one and only one **menus**.
+- An **item** must contain one **button**.
+- An **item** may contain one **child menu**.
 
 This pattern is infinitely nestable. See the example menu structure below:
 
@@ -165,33 +167,17 @@ To attach behavior to the menu, simply instantiate a new `Menu` with the root me
 </script>
 ```
 
-The code above will yield a visually persistent menu, called a menu bar. If instead the menu should be toggleable (e.g. a mobile menu toggled via a hamburger button), pass in an external button as the second argument.
+The code above will yield a visually persistent menu. If instead the menu should be toggleable (e.g. a mobile menu toggled via a hamburger button), pass in an external button as the second argument.
 
 ``` html
-<button class="hamburger"></button>
+<button class="menu-button"></button>
 
 <div class="menu">
-	<div class="item">
-		<a class="button" href="#">Lorem Ipsum</a>
-	</div>
-
-	<div class="item">
-		<button class="button">Dolor Sit</button>
-
-		<div class="menu">
-			<div class="item">
-				<a class="button" href="#">Amet Consectetur</a>
-			</div>
-
-			<!-- More items... -->
-		</div>
-	</div>
-
-	<!-- More items... -->
+	<!-- Items... -->
 </div>
 
 <script>
-	new Menu(document.querySelector('.menu'), document.querySelector('.hamburger'));
+	new Menu(document.querySelector('.menu'), document.querySelector('.menu-button'));
 </script>
 ```
 

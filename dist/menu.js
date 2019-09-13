@@ -7,7 +7,7 @@ class Menu {
         this.parent = parent;
         this.isRoot = !this.parent;
         this.isToggleable = !!this.button;
-        this.hasExternalButton = this.isRoot && this.isToggleable;
+        this.hasMenuButton = this.isRoot && !!this.button;
         this.isOpen = !this.isToggleable;
         this.items = Array.from(Menu.getMenuItems(this.menu)).map(this.createItem.bind(this));
         this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
@@ -21,7 +21,7 @@ class Menu {
         // Prefer to keep the existing ID, but fallback to a random string if necessary.
         this.menu.id = this.menu.id || Menu.generateUniqueID();
         // Only continue if this menu is toggleable via a menu button.
-        if (!this.hasExternalButton)
+        if (!this.hasMenuButton)
             return;
         // Prefer to keep the existing ID, but fallback to a random string if necessary.
         this.button.id = this.button.id || Menu.generateUniqueID();
@@ -44,7 +44,7 @@ class Menu {
     }
     configureButton() {
         // Only continue if a menu button exists.
-        if (!this.hasExternalButton)
+        if (!this.hasMenuButton)
             return;
         // Set the aria label if no discernible text is found.
         if (!this.button.innerText && !this.button.getAttribute('aria-label')) {
@@ -66,8 +66,10 @@ class Menu {
         button.dataset.index = String(index);
         button.setAttribute('role', 'menuitem');
         button.addEventListener('keydown', this.keydownHandler.bind(this));
-        // Return the Item, only creating a new Menu if a menu element was found.
-        return { element, button, menu: menu ? this.createMenu(menu, button) : null };
+        // Return the Item, only creating a new Menu if a menu element ia found.
+        return menu !== null
+            ? { element, button, menu: this.createMenu(menu, button) }
+            : { element, button };
     }
     createMenu(menu, button) {
         // Generate unique IDs for the menu and button.
@@ -155,8 +157,8 @@ class Menu {
         // Only continue if there is a parent menu to close.
         if (!this.parent)
             return;
-        // Don't close the parent menu if it is the root menu unless it has an external button.
-        if (this.parent.isRoot && !this.parent.hasExternalButton)
+        // Don't close the parent menu if it is the root menu, unless it has a menu button.
+        if (this.parent.isRoot && !this.parent.hasMenuButton)
             return;
         this.parent.closeMenu();
         this.parent.closeParentMenus();
@@ -210,7 +212,7 @@ class Menu {
     }
     focusItem(index) {
         const button = this.items[index].button;
-        // Employ roving tabindex for the root menu.
+        // Employ roving tab index for the root menu.
         if (this.isRoot) {
             this.resetTabIndeces();
             button.tabIndex = 0;
@@ -273,7 +275,7 @@ class Menu {
         // Children menu items are only ever focusable programmatically.
         if (!isInRootMenu)
             return -1;
-        // Root menu items have a dynamic tabIndex, but initially only the first item is focusable.
+        // Root menu items have a dynamic tab index, but initially only the first item is focusable.
         return index === 0 ? 0 : -1;
     }
 }
