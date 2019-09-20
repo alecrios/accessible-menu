@@ -1,4 +1,4 @@
-.hamburger {
+.menu-button {
 	background-color: var(--gray-8);
 	color: var(--gray-2);
 	width: 3rem;
@@ -8,11 +8,11 @@
 	justify-content: center;
 }
 
-.hamburger::before {
+.menu-button::before {
 	content: '\2630';
 }
 
-.hamburger[aria-expanded='true']::before {
+.menu-button[aria-expanded='true']::before {
 	content: '\2715';
 }
 

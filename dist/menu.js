@@ -1,11 +1,13 @@
 /** A class which manages the behavior of a navigational menu system. */
 class Menu {
-    constructor(menu, button, parent) {
+    constructor(menu, button, options, parent) {
         // Define the class properties.
         this.menu = menu;
         this.button = button;
+        this.options = options;
         this.parent = parent;
         this.isRoot = !this.parent;
+        this.depth = this.isRoot ? 0 : this.parent.depth + 1;
         this.isToggleable = !!this.button;
         this.hasMenuButton = this.isRoot && !!this.button;
         this.isOpen = !this.isToggleable;
@@ -66,7 +68,7 @@ class Menu {
         button.dataset.index = String(index);
         button.setAttribute('role', 'menuitem');
         button.addEventListener('keydown', this.keydownHandler.bind(this));
-        // Return the Item, only creating a new Menu if a menu element ia found.
+        // Return the Item, only creating a new Menu if a menu element is found.
         return menu !== null
             ? { element, button, menu: this.createMenu(menu, button) }
             : { element, button };
@@ -85,7 +87,7 @@ class Menu {
         menu.id = menuID;
         menu.style.display = 'none';
         // Return a newly created Menu.
-        return new Menu(menu, button, this);
+        return new Menu(menu, button, this.options, this);
     }
     menuButtonClickHandler() {
         // Toggle the visibility state of the menu.
@@ -107,33 +109,58 @@ class Menu {
         // Only continue if there is a menu able to be opened.
         if (!this.menu || !this.isToggleable || this.isOpen)
             return;
-        // Close any open sibling menus.
-        this.closeSiblingMenus();
-        // Update the button and menu elements.
-        this.button.setAttribute('aria-expanded', 'true');
-        this.menu.style.display = 'block';
-        // Move the focus.
-        this.focusFirstItem();
         // Update the menu visibility state.
         this.isOpen = true;
+        // Update the button element.
+        this.button.setAttribute('aria-expanded', 'true');
         // Start listening for outside clicks.
         document.addEventListener('click', this.closeOnOutsideClickBound);
+        // Run the transition animation.
+        const transition = this.getTransition('open');
+        transition(this.menu, () => {
+            this.focusFirstItem();
+            this.closeSiblingMenus();
+        });
     }
-    closeMenu() {
+    closeMenu(instant = false) {
         // Only continue if there is a menu able to be closed.
         if (!this.menu || !this.isToggleable || !this.isOpen)
             return;
-        // Close any open child menus.
-        this.closeChildMenus();
-        // Update the button and menu elements.
-        this.button.setAttribute('aria-expanded', 'false');
-        this.menu.style.display = 'none';
-        // Move the focus.
-        this.button.focus();
         // Update the menu visibility state.
         this.isOpen = false;
+        // Update the button element.
+        this.button.setAttribute('aria-expanded', 'false');
         // Stop listening for outside clicks.
         document.removeEventListener('click', this.closeOnOutsideClickBound);
+        // Run the transition animation.
+        const transition = instant ? Menu.transitions.instant.close : this.getTransition('close');
+        transition(this.menu, () => {
+            this.button.focus();
+            this.closeChildMenus();
+        });
+    }
+    // TODO: Clean up this function.
+    getTransition(type) {
+        // Check for a provided transition function.
+        if (this.options
+            && this.options.transitions
+            && this.options.transitions[this.depth]
+            && this.options.transitions[this.depth][type]) {
+            return this.options.transitions[this.depth][type];
+        }
+        // Check if an ancester menu's transition settings apply to children.
+        if (!this.isRoot) {
+            for (let index = this.depth - 1; index >= 0; index -= 1) {
+                if (this.options
+                    && this.options.transitions
+                    && this.options.transitions[index]
+                    && this.options.transitions[index].applyToChildren) {
+                    return this.options.transitions[index][type];
+                }
+            }
+        }
+        // Default to the instant transition function.
+        return Menu.transitions.instant[type];
     }
     closeSiblingMenus() {
         if (!this.parent)
@@ -142,6 +169,7 @@ class Menu {
             // Only continue if this item is a sibling and has a menu.
             if (item.menu === this || !item.menu)
                 return;
+            // Close the menu.
             item.menu.closeMenu();
         });
     }
@@ -150,7 +178,8 @@ class Menu {
             // Only continue if this item has a menu.
             if (!item.menu)
                 return;
-            item.menu.closeMenu();
+            // Close the the menu instantly, because its parent is already closed.
+            item.menu.closeMenu(true);
         });
     }
     closeParentMenus() {
@@ -279,3 +308,45 @@ class Menu {
         return index === 0 ? 0 : -1;
     }
 }
+/** The publicly available transition functions for opening and closing menus. */
+Menu.transitions = {
+    instant: {
+        open(menu, callback) {
+            menu.style.display = 'block';
+            callback();
+        },
+        close(menu, callback) {
+            menu.style.display = 'none';
+            callback();
+        },
+    },
+    fade: {
+        open(menu, callback) {
+            menu.style.opacity = '0';
+            menu.style.transition = 'opacity 125ms ease';
+            menu.style.display = 'block';
+            menu.addEventListener('transitionend', () => {
+                callback();
+            }, { once: true });
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    menu.style.opacity = '1';
+                });
+            });
+            callback();
+        },
+        close(menu, callback) {
+            menu.style.opacity = '1';
+            menu.style.transition = 'opacity 125ms ease';
+            menu.addEventListener('transitionend', () => {
+                menu.style.display = 'none';
+                callback();
+            }, { once: true });
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    menu.style.opacity = '0';
+                });
+            });
+        },
+    },
+};

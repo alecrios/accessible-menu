@@ -5,6 +5,16 @@ interface Item {
 	menu?: Menu;
 }
 
+/** The options for a menu instance. */
+interface Options {
+	/* The array of transitions, where the index corresponds to the depth of the menu. */
+	transitions?: [{
+		open: (menu: HTMLElement) => void;
+		close: (menu: HTMLElement) => void;
+		applyToChildren?: boolean;
+	}];
+}
+
 /** A class which manages the behavior of a navigational menu system. */
 class Menu {
 	/** The menu element. */
@@ -13,11 +23,17 @@ class Menu {
 	/** The button element. */
 	private button: HTMLElement;
 
+	/** The menu options. */
+	private options: Options;
+
 	/** The parent menu. */
 	private parent: Menu;
 
 	/** Whether this is the highest-level menu. */
 	private isRoot: boolean;
+
+	/** The hierarchical index of the menu. */
+	private depth: number;
 
 	/** Whether this can be opened and closed. */
 	private isToggleable: boolean;
@@ -34,12 +50,62 @@ class Menu {
 	/** The bound function which closes the menu if an external click is detected. */
 	private closeOnOutsideClickBound: EventListenerObject;
 
-	constructor(menu: HTMLElement, button?: HTMLElement, parent?: Menu) {
+	/** The publicly available transition functions for opening and closing menus. */
+	public static transitions = {
+		instant: {
+			open(menu, callback): void {
+				menu.style.display = 'block';
+				callback();
+			},
+			close(menu, callback): void {
+				menu.style.display = 'none';
+				callback();
+			},
+		},
+		fade: {
+			open(menu, callback): void {
+				menu.style.opacity = '0';
+				menu.style.transition = 'opacity 125ms ease';
+				menu.style.display = 'block';
+
+				menu.addEventListener('transitionend', () => {
+					callback();
+				}, {once: true});
+
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						menu.style.opacity = '1';
+					});
+				});
+
+				callback();
+			},
+			close(menu, callback): void {
+				menu.style.opacity = '1';
+				menu.style.transition = 'opacity 125ms ease';
+
+				menu.addEventListener('transitionend', () => {
+					menu.style.display = 'none';
+					callback();
+				}, {once: true});
+
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						menu.style.opacity = '0';
+					});
+				});
+			},
+		},
+	}
+
+	constructor(menu: HTMLElement, button?: HTMLElement, options?: Options, parent?: Menu) {
 		// Define the class properties.
 		this.menu = menu;
 		this.button = button;
+		this.options = options;
 		this.parent = parent;
 		this.isRoot = !this.parent;
+		this.depth = this.isRoot ? 0 : this.parent.depth + 1;
 		this.isToggleable = !!this.button;
 		this.hasMenuButton = this.isRoot && !!this.button;
 		this.isOpen = !this.isToggleable;
@@ -111,7 +177,7 @@ class Menu {
 		button.setAttribute('role', 'menuitem');
 		button.addEventListener('keydown', this.keydownHandler.bind(this));
 
-		// Return the Item, only creating a new Menu if a menu element ia found.
+		// Return the Item, only creating a new Menu if a menu element is found.
 		return menu !== null
 			? {element, button, menu: this.createMenu(menu, button)}
 			: {element, button};
@@ -134,7 +200,7 @@ class Menu {
 		menu.style.display = 'none';
 
 		// Return a newly created Menu.
-		return new Menu(menu, button, this);
+		return new Menu(menu, button, this.options, this);
 	}
 
 	private menuButtonClickHandler(): void {
@@ -162,42 +228,72 @@ class Menu {
 		// Only continue if there is a menu able to be opened.
 		if (!this.menu || !this.isToggleable || this.isOpen) return;
 
-		// Close any open sibling menus.
-		this.closeSiblingMenus();
-
-		// Update the button and menu elements.
-		this.button.setAttribute('aria-expanded', 'true');
-		this.menu.style.display = 'block';
-
-		// Move the focus.
-		this.focusFirstItem();
-
 		// Update the menu visibility state.
 		this.isOpen = true;
 
+		// Update the button element.
+		this.button.setAttribute('aria-expanded', 'true');
+
 		// Start listening for outside clicks.
 		document.addEventListener('click', this.closeOnOutsideClickBound);
+
+		// Run the transition animation.
+		const transition = this.getTransition('open');
+		transition(this.menu, () => {
+			this.focusFirstItem();
+			this.closeSiblingMenus();
+		});
 	}
 
-	private closeMenu(): void {
+	private closeMenu(instant = false): void {
 		// Only continue if there is a menu able to be closed.
 		if (!this.menu || !this.isToggleable || !this.isOpen) return;
-
-		// Close any open child menus.
-		this.closeChildMenus();
-
-		// Update the button and menu elements.
-		this.button.setAttribute('aria-expanded', 'false');
-		this.menu.style.display = 'none';
-
-		// Move the focus.
-		this.button.focus();
 
 		// Update the menu visibility state.
 		this.isOpen = false;
 
+		// Update the button element.
+		this.button.setAttribute('aria-expanded', 'false');
+
 		// Stop listening for outside clicks.
 		document.removeEventListener('click', this.closeOnOutsideClickBound);
+
+		// Run the transition animation.
+		const transition = instant ? Menu.transitions.instant.close : this.getTransition('close');
+		transition(this.menu, () => {
+			this.button.focus();
+			this.closeChildMenus();
+		});
+	}
+
+	// TODO: Clean up this function.
+	private getTransition(type: 'open' | 'close'): Function {
+		// Check for a provided transition function.
+		if (
+			this.options
+			&& this.options.transitions
+			&& this.options.transitions[this.depth]
+			&& this.options.transitions[this.depth][type]
+		) {
+			return this.options.transitions[this.depth][type];
+		}
+
+		// Check if an ancester menu's transition settings apply to children.
+		if (!this.isRoot) {
+			for (let index = this.depth - 1; index >= 0; index -= 1) {
+				if (
+					this.options
+					&& this.options.transitions
+					&& this.options.transitions[index]
+					&& this.options.transitions[index].applyToChildren
+				) {
+					return this.options.transitions[index][type];
+				}
+			}
+		}
+
+		// Default to the instant transition function.
+		return Menu.transitions.instant[type];
 	}
 
 	private closeSiblingMenus(): void {
@@ -207,6 +303,7 @@ class Menu {
 			// Only continue if this item is a sibling and has a menu.
 			if (item.menu === this || !item.menu) return;
 
+			// Close the menu.
 			item.menu.closeMenu();
 		});
 	}
@@ -216,7 +313,8 @@ class Menu {
 			// Only continue if this item has a menu.
 			if (!item.menu) return;
 
-			item.menu.closeMenu();
+			// Close the the menu instantly, because its parent is already closed.
+			item.menu.closeMenu(true);
 		});
 	}
 
