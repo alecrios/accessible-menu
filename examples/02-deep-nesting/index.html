@@ -321,52 +321,10 @@
 	<script src="../../dist/menu.js"></script>
 	<script>
 		const menu = document.querySelector('.menu');
-
-		function open(menu, callback) {
-			menu.style.display = 'block';
-			const height = menu.offsetHeight;
-			menu.style.display = 'none';
-
-			menu.style.height = '0';
-			menu.style.transition = 'height 500ms ease';
-			menu.style.overflow = 'hidden';
-
-			menu.addEventListener('transitionend', () => {
-				menu.style.transition = 'none';
-				menu.style.overflow = 'auto';
-				callback();
-			}, {once: true});
-
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
-					menu.style.display = 'block';
-					menu.style.height = `${height}px`;
-				});
-			});
-		}
-
-		function close(menu, callback) {
-			menu.style.transition = 'height 500ms ease';
-			menu.style.overflow = 'hidden';
-
-			menu.addEventListener('transitionend', () => {
-				menu.style.display = 'none';
-				menu.style.transition = 'none';
-				menu.style.overflow = 'auto';
-				callback();
-			}, {once: true});
-
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
-					menu.style.height = '0';
-				});
-			});
-		}
-
 		new Menu(menu, null, {
 			transitions: [{
-				open,
-				close,
+				open: Menu.transitions.height.open,
+				close: Menu.transitions.height.close,
 				applyToChildren: true,
 			}],
 		});

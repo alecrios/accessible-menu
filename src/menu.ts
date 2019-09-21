@@ -62,7 +62,7 @@ class Menu {
 				callback();
 			},
 		},
-		fade: {
+		opacity: {
 			open(menu, callback): void {
 				menu.style.opacity = '0';
 				menu.style.transition = 'opacity 125ms ease';
@@ -92,6 +92,49 @@ class Menu {
 				requestAnimationFrame(() => {
 					requestAnimationFrame(() => {
 						menu.style.opacity = '0';
+					});
+				});
+			},
+		},
+		height: {
+			open(menu, callback): void {
+				menu.style.overflow = 'hidden';
+				menu.style.display = 'flex';
+				const height = menu.offsetHeight;
+				menu.style.height = '0';
+				menu.style.transition = 'height 125ms ease-out';
+
+				menu.addEventListener('transitionend', () => {
+					menu.style.overflow = 'visible';
+					menu.style.transition = 'none';
+					menu.style.height = 'auto';
+					callback();
+				}, {once: true});
+
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						menu.style.height = `${height}px`;
+					});
+				});
+			},
+			close(menu, callback): void {
+				menu.style.overflow = 'hidden';
+				menu.style.display = 'flex';
+				const height = menu.offsetHeight;
+				menu.style.height = `${height}px`;
+				menu.style.transition = 'height 125ms ease-out';
+
+				menu.addEventListener('transitionend', () => {
+					menu.style.display = 'none';
+					menu.style.overflow = 'visible';
+					menu.style.transition = 'none';
+					menu.style.height = 'auto';
+					callback();
+				}, {once: true});
+
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						menu.style.height = '0';
 					});
 				});
 			},

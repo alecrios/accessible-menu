@@ -5,6 +5,7 @@
 
 .menu .menu {
 	display: none;
+	flex-direction: column;
 	width: 12rem;
 	position: absolute;
 }
