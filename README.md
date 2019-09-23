@@ -125,6 +125,10 @@ When focus is on a button:
 	- If the item is in a non-root menu...
 		- If the menu is open...
 			- Closes the menu and any open child menus. Moves focus to the button which opened it.
+- **Tab**
+	- Closes all menus. Moves focus to the next focusable element outside the menu system.
+_ **Shift + Tab**
+	- Closes all menus. Moves focus to the previous focusable element outside the menu system.
 - **Left Arrow** - Moves focus to the previous button in the menu. If focus is on the first button, moves focus to the last button.
 - **Right Arrow** - Moves focus to the next button in the menu. If focus is on the last button, moves focus to the first button.
 - **Up Arrow** - Moves focus to the previous button in the menu. If focus is on the first button, moves focus to the last button.

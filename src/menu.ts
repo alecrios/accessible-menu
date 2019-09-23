@@ -1,3 +1,11 @@
+/**
+ * TODO
+ * 
+ * * Fix slide transition issue with padding and border.
+ * * Add documentation for transitions.
+ * * Create a test demo with visualization for attributes and external focusable elements.
+ */
+
 /** An object which manages the data for a menu item. */
 interface Item {
 	element: HTMLElement;
@@ -69,7 +77,7 @@ class Menu {
 		fade: {
 			open(menu: HTMLElement, callback: Function): void {
 				menu.style.opacity = '0';
-				menu.style.transition = 'opacity 1000ms ease';
+				menu.style.transition = 'opacity 100ms ease';
 				menu.style.display = 'block';
 
 				menu.addEventListener('transitionend', () => {
@@ -80,7 +88,7 @@ class Menu {
 			},
 			close(menu: HTMLElement, callback: Function): void {
 				menu.style.opacity = '1';
-				menu.style.transition = 'opacity 1000ms ease';
+				menu.style.transition = 'opacity 100ms ease';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
@@ -96,7 +104,7 @@ class Menu {
 				menu.style.display = 'block';
 				const height = menu.offsetHeight;
 				menu.style.maxHeight = '0';
-				menu.style.transition = 'max-height 1000ms ease-out';
+				menu.style.transition = 'max-height 100ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.overflow = 'visible';
@@ -112,7 +120,7 @@ class Menu {
 				menu.style.display = 'block';
 				const height = menu.offsetHeight;
 				menu.style.maxHeight = `${height}px`;
-				menu.style.transition = 'max-height 1000ms ease-out';
+				menu.style.transition = 'max-height 100ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
@@ -281,8 +289,9 @@ class Menu {
 		// Run the transition function.
 		transition(this.menu, () => {});
 
+		// Perform some actions once the layout has updated.
 		doubleRequestAnimationFrame(() => {
-			//
+			// If the button controlling this menu uses roving tab index, disable focusability.
 			if (this.hasMenuButton || this.parent.isRoot) {
 				this.button.tabIndex = -1;
 			}
@@ -313,8 +322,9 @@ class Menu {
 		// Run the transition function.
 		transition(this.menu, () => { this.closeChildMenus(); });
 
+		// Perform some actions once the layout has updated.
 		doubleRequestAnimationFrame(() => {
-			//
+			// If the button controlling this menu uses roving tab index, enable focusability.
 			if (this.hasMenuButton || this.parent.isRoot) {
 				this.button.tabIndex = 0;
 			}
@@ -385,18 +395,22 @@ class Menu {
 	}
 
 	private closeAllMenus(): void {
+		// If this is the root menu and it is toggleable, close it.
 		if (this.isRoot) {
 			if (this.isToggleable) {
 				this.closeMenu({ skipFocus: true });
 			}
+
 			return;
 		}
 
+		// If this is the root menu's child menu and the root is not toggleable, close it.
 		if (this.parent.isRoot && !this.parent.isToggleable) {
 			this.closeMenu({ skipFocus: true });
 			return;
 		}
 
+		// Continue looking for the highest toggleable menu.
 		this.parent.closeAllMenus();
 	}
 

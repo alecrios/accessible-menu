@@ -56,7 +56,3 @@
 .menu .menu .item.has-menu > .button[aria-expanded='true']::after {
 	content: '\25c2';
 }
-
-:focus {
-	outline: 2px solid red;
-}
