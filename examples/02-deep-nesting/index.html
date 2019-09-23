@@ -9,6 +9,8 @@
 	<title>Accessible Menu - Deep Nesting</title>
 </head>
 <body>
+	<a href="#">testlink</a>
+
 	<div class="menu">
 		<div class="item has-menu">
 			<button class="button">Lorem Ipsum</button>
@@ -317,17 +319,13 @@
 		</div>
 	</div>
 
+	<a href="#">testlink</a>
+
 	<script src="../_assets/js/focus-visible.js"></script>
 	<script src="../../dist/menu.js"></script>
 	<script>
 		const menu = document.querySelector('.menu');
-		new Menu(menu, null, {
-			transitions: [{
-				open: Menu.transitions.height.open,
-				close: Menu.transitions.height.close,
-				applyToChildren: true,
-			}],
-		});
+		new Menu(menu, null, ['fade']);
 	</script>
 </body>
 </html>

@@ -5,15 +5,16 @@ interface Item {
 	menu?: Menu;
 }
 
-/** The options for a menu instance. */
-interface Options {
-	/* The array of transitions, where the index corresponds to the depth of the menu. */
-	transitions?: [{
-		open: (menu: HTMLElement) => void;
-		close: (menu: HTMLElement) => void;
-		applyToChildren?: boolean;
-	}];
+/** An object which defines the open and close animation functions. */
+interface Transition {
+	open?: (menu: HTMLElement) => void;
+	close?: (menu: HTMLElement) => void;
 }
+
+/** A utility function for wrapping a function in two requestAnimationFrame functions. */
+const doubleRequestAnimationFrame = (callback): void => {
+	requestAnimationFrame(() => { requestAnimationFrame(callback); });
+};
 
 /** A class which manages the behavior of a navigational menu system. */
 class Menu {
@@ -23,8 +24,11 @@ class Menu {
 	/** The button element. */
 	private button: HTMLElement;
 
-	/** The menu options. */
-	private options: Options;
+	/** The array of transitions for all menus. */
+	private transitions: [string | Transition];
+
+	/** The transition for this menu. */
+	private transition: Transition;
 
 	/** The parent menu. */
 	private parent: Menu;
@@ -50,109 +54,88 @@ class Menu {
 	/** The bound function which closes the menu if an external click is detected. */
 	private closeOnOutsideClickBound: EventListenerObject;
 
-	/** The publicly available transition functions for opening and closing menus. */
-	public static transitions = {
+	/** The transition functions for opening and closing menus. */
+	private static transitionFunctions = {
 		instant: {
-			open(menu, callback): void {
+			open(menu): void {
 				menu.style.display = 'block';
-				callback();
 			},
-			close(menu, callback): void {
+			close(menu): void {
 				menu.style.display = 'none';
-				callback();
 			},
 		},
-		opacity: {
-			open(menu, callback): void {
+		fade: {
+			open(menu): void {
 				menu.style.opacity = '0';
-				menu.style.transition = 'opacity 125ms ease';
+				menu.style.transition = 'opacity 250ms ease';
 				menu.style.display = 'block';
 
-				menu.addEventListener('transitionend', () => {
-					callback();
-				}, {once: true});
-
-				requestAnimationFrame(() => {
-					requestAnimationFrame(() => {
-						menu.style.opacity = '1';
-					});
-				});
-
-				callback();
+				doubleRequestAnimationFrame(() => { menu.style.opacity = '1'; });
 			},
-			close(menu, callback): void {
+			close(menu): void {
 				menu.style.opacity = '1';
-				menu.style.transition = 'opacity 125ms ease';
+				menu.style.transition = 'opacity 250ms ease';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
-					callback();
 				}, {once: true});
 
-				requestAnimationFrame(() => {
-					requestAnimationFrame(() => {
-						menu.style.opacity = '0';
-					});
-				});
+				doubleRequestAnimationFrame(() => { menu.style.opacity = '0'; });
 			},
 		},
-		height: {
-			open(menu, callback): void {
+		slide: {
+			open(menu): void {
 				menu.style.overflow = 'hidden';
-				menu.style.display = 'flex';
+				menu.style.display = 'block';
 				const height = menu.offsetHeight;
 				menu.style.height = '0';
-				menu.style.transition = 'height 125ms ease-out';
+				menu.style.transition = 'height 250ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.overflow = 'visible';
 					menu.style.transition = 'none';
 					menu.style.height = 'auto';
-					callback();
 				}, {once: true});
 
-				requestAnimationFrame(() => {
-					requestAnimationFrame(() => {
-						menu.style.height = `${height}px`;
-					});
-				});
+				doubleRequestAnimationFrame(() => { menu.style.height = `${height}px`; });
 			},
-			close(menu, callback): void {
+			close(menu): void {
 				menu.style.overflow = 'hidden';
-				menu.style.display = 'flex';
+				menu.style.display = 'block';
 				const height = menu.offsetHeight;
 				menu.style.height = `${height}px`;
-				menu.style.transition = 'height 125ms ease-out';
+				menu.style.transition = 'height 250ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
 					menu.style.overflow = 'visible';
 					menu.style.transition = 'none';
 					menu.style.height = 'auto';
-					callback();
 				}, {once: true});
 
-				requestAnimationFrame(() => {
-					requestAnimationFrame(() => {
-						menu.style.height = '0';
-					});
-				});
+				doubleRequestAnimationFrame(() => { menu.style.height = '0'; });
 			},
 		},
 	}
 
-	constructor(menu: HTMLElement, button?: HTMLElement, options?: Options, parent?: Menu) {
+	constructor(
+		menu: HTMLElement,
+		button?: HTMLElement,
+		transitions?: [string | Transition],
+		parent?: Menu,
+	) {
 		// Define the class properties.
 		this.menu = menu;
 		this.button = button;
-		this.options = options;
+		this.transitions = transitions;
 		this.parent = parent;
 		this.isRoot = !this.parent;
 		this.depth = this.isRoot ? 0 : this.parent.depth + 1;
+		this.transition = this.getTransition(this.transitions, this.depth);
 		this.isToggleable = !!this.button;
 		this.hasMenuButton = this.isRoot && !!this.button;
 		this.isOpen = !this.isToggleable;
-		this.items = Array.from(Menu.getMenuItems(this.menu)).map(this.createItem.bind(this));
+		this.items = Menu.getMenuItems(this.menu).map(this.createItem.bind(this));
 		this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
 
 		// Configure elements.
@@ -243,7 +226,7 @@ class Menu {
 		menu.style.display = 'none';
 
 		// Return a newly created Menu.
-		return new Menu(menu, button, this.options, this);
+		return new Menu(menu, button, this.transitions, this);
 	}
 
 	private menuButtonClickHandler(): void {
@@ -280,15 +263,27 @@ class Menu {
 		// Start listening for outside clicks.
 		document.addEventListener('click', this.closeOnOutsideClickBound);
 
-		// Run the transition animation.
-		const transition = this.getTransition('open');
-		transition(this.menu, () => {
+		// Close any open sibling menus.
+		this.closeSiblingMenus();
+
+		// Get the transition function.
+		const transition = this.transition.open;
+
+		// Run the transition function.
+		transition(this.menu);
+
+		doubleRequestAnimationFrame(() => {
+			//
+			if (this.hasMenuButton || this.parent.isRoot) {
+				this.button.tabIndex = -1;
+			}
+
+			// Send focus to the first item in the menu.
 			this.focusFirstItem();
-			this.closeSiblingMenus();
 		});
 	}
 
-	private closeMenu(instant = false): void {
+	private closeMenu({ closeInstantly = false, skipFocus = false } = {}): void {
 		// Only continue if there is a menu able to be closed.
 		if (!this.menu || !this.isToggleable || !this.isOpen) return;
 
@@ -301,42 +296,64 @@ class Menu {
 		// Stop listening for outside clicks.
 		document.removeEventListener('click', this.closeOnOutsideClickBound);
 
-		// Run the transition animation.
-		const transition = instant ? Menu.transitions.instant.close : this.getTransition('close');
-		transition(this.menu, () => {
-			this.button.focus();
+		// Get the transition function.
+		const transition = closeInstantly
+			? Menu.transitionFunctions.instant.close
+			: this.transition.close;
+
+		// Run the transition function.
+		transition(this.menu);
+
+		doubleRequestAnimationFrame(() => {
+			// Close any open child menus.
 			this.closeChildMenus();
+
+			//
+			if (this.hasMenuButton || this.parent.isRoot) {
+				this.button.tabIndex = 0;
+			}
+
+			// Send focus to the button for the menu.
+			if (!closeInstantly && !skipFocus) {
+				this.button.focus();
+			}
 		});
 	}
 
-	// TODO: Clean up this function.
-	private getTransition(type: 'open' | 'close'): Function {
-		// Check for a provided transition function.
-		if (
-			this.options
-			&& this.options.transitions
-			&& this.options.transitions[this.depth]
-			&& this.options.transitions[this.depth][type]
-		) {
-			return this.options.transitions[this.depth][type];
+	private getTransition(transitions: [string | Transition], depth: number): Transition {
+		// Get the transition object to fallback to.
+		const defaultTransition = Menu.transitionFunctions.instant;
+
+		// If the transitions array is invalid, fallback to the default.
+		if (!transitions || !Array.isArray(transitions) || !transitions.length) {
+			return defaultTransition;
 		}
 
-		// Check if an ancester menu's transition settings apply to children.
-		if (!this.isRoot) {
-			for (let index = this.depth - 1; index >= 0; index -= 1) {
-				if (
-					this.options
-					&& this.options.transitions
-					&& this.options.transitions[index]
-					&& this.options.transitions[index].applyToChildren
-				) {
-					return this.options.transitions[index][type];
-				}
-			}
+		// If the transition isn't specified for the menu at this depth, look up the tree.
+		if (!transitions[depth]) {
+			return depth === 0
+				? defaultTransition
+				: this.getTransition(transitions, depth - 1);
 		}
 
-		// Default to the instant transition function.
-		return Menu.transitions.instant[type];
+		// Check if the name of a built-in transition was specified.
+		if (typeof transitions[depth] === 'string') {
+			const transitionName = transitions[depth] as string;
+			return Object.keys(Menu.transitionFunctions).includes(transitionName)
+				? Menu.transitionFunctions[transitionName]
+				: defaultTransition;
+		}
+
+		// Check if a custom transition object was provided.
+		if (typeof transitions[depth] === 'object') {
+			const transition = transitions[depth] as Transition;
+			return typeof transition.open === 'function' && typeof transition.close === 'function'
+				? transition
+				: defaultTransition;
+		}
+
+		// Fallback to the default.
+		return defaultTransition;
 	}
 
 	private closeSiblingMenus(): void {
@@ -347,7 +364,7 @@ class Menu {
 			if (item.menu === this || !item.menu) return;
 
 			// Close the menu.
-			item.menu.closeMenu();
+			item.menu.closeMenu({ skipFocus: true });
 		});
 	}
 
@@ -356,20 +373,25 @@ class Menu {
 			// Only continue if this item has a menu.
 			if (!item.menu) return;
 
-			// Close the the menu instantly, because its parent is already closed.
-			item.menu.closeMenu(true);
+			// Close the the menu.
+			item.menu.closeMenu({ closeInstantly: true, skipFocus: true });
 		});
 	}
 
-	private closeParentMenus(): void {
-		// Only continue if there is a parent menu to close.
-		if (!this.parent) return;
+	private closeAllMenus(): void {
+		if (this.isRoot) {
+			if (this.isToggleable) {
+				this.closeMenu({ skipFocus: true });
+			}
+			return;
+		}
 
-		// Don't close the parent menu if it is the root menu, unless it has a menu button.
-		if (this.parent.isRoot && !this.parent.hasMenuButton) return;
+		if (this.parent.isRoot && !this.parent.isToggleable) {
+			this.closeMenu({ skipFocus: true });
+			return;
+		}
 
-		this.parent.closeMenu();
-		this.parent.closeParentMenus();
+		this.parent.closeAllMenus();
 	}
 
 	private keydownHandler(event: KeyboardEvent): void {
@@ -381,8 +403,7 @@ class Menu {
 		if (key === 'Escape') {
 			this.closeMenu();
 		} else if (key === 'Tab') {
-			this.closeMenu();
-			this.closeParentMenus();
+			this.closeAllMenus();
 		} else if (key === 'ArrowLeft' || key === 'ArrowUp') {
 			this.focusPreviousItem(index);
 		} else if (key === 'ArrowRight' || key === 'ArrowDown') {
@@ -402,7 +423,7 @@ class Menu {
 		// Only continue if the click target is not a descendent of the menu or button.
 		if (target.closest(`#${this.menu.id}`) || target.closest(`#${this.button.id}`)) return;
 
-		this.closeMenu();
+		this.closeAllMenus();
 	}
 
 	private focusPreviousItem(currentIndex: number): void {
@@ -475,8 +496,13 @@ class Menu {
 		return -1;
 	}
 
-	private static getMenuItems(menu: HTMLElement): NodeListOf<HTMLElement> {
-		return menu.querySelectorAll(':scope > .item');
+	private static getMenuItems(menu: HTMLElement): HTMLElement[] {
+		let items = Array.from(menu.querySelectorAll('.item') as NodeListOf<HTMLElement>);
+
+		// Keep only the child items, filtering out further descedents.
+		items = items.filter((item) => item.closest('.menu') === menu);
+
+		return items;
 	}
 
 	private static getItemButton(item: HTMLElement): HTMLElement {

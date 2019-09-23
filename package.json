@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"description": "A JavaScript class which attaches navigation menu behavior to markup.",
 	"scripts": {
-		"build": "tsc src/menu.ts --target es6 --outDir dist",
+		"build": "tsc src/menu.ts --target es2016 --outDir dist",
 		"lint": "eslint --ext .ts --ignore-path .gitignore ."
 	},
 	"repository": {

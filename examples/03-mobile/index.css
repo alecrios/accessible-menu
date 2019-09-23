@@ -18,12 +18,10 @@
 
 .menu {
 	display: none;
-	justify-content: center;
 	background-color: var(--gray-8);
 }
 
 .menu .menu {
-	padding: .75rem 0;
 	background-color: var(--gray-9);
 	position: relative;
 }
@@ -46,6 +44,16 @@
 	width: 0;
 	height: calc(100% - 3rem);
 	border-left: .0625rem solid var(--gray-8);
+}
+
+.items {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+.menu .menu .items {
+	padding: .75rem 0;
 }
 
 .item {
@@ -82,4 +90,8 @@
 
 .item.has-menu > .button[aria-expanded='true']::after {
 	content: '\25b4';
+}
+
+:focus {
+	outline: 2px solid red;
 }
