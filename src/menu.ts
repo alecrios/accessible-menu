@@ -7,8 +7,8 @@ interface Item {
 
 /** An object which defines the open and close animation functions. */
 interface Transition {
-	open?: (menu: HTMLElement) => void;
-	close?: (menu: HTMLElement) => void;
+	open?: (menu: HTMLElement, callback: Function) => void;
+	close?: (menu: HTMLElement, callback: Function) => void;
 }
 
 /** A utility function for wrapping a function in two requestAnimationFrame functions. */
@@ -57,63 +57,72 @@ class Menu {
 	/** The transition functions for opening and closing menus. */
 	private static transitionFunctions = {
 		instant: {
-			open(menu): void {
+			open(menu: HTMLElement, callback: Function): void {
 				menu.style.display = 'block';
+				callback();
 			},
-			close(menu): void {
+			close(menu: HTMLElement, callback: Function): void {
 				menu.style.display = 'none';
+				callback();
 			},
 		},
 		fade: {
-			open(menu): void {
+			open(menu: HTMLElement, callback: Function): void {
 				menu.style.opacity = '0';
-				menu.style.transition = 'opacity 250ms ease';
+				menu.style.transition = 'opacity 1000ms ease';
 				menu.style.display = 'block';
+
+				menu.addEventListener('transitionend', () => {
+					callback();
+				}, {once: true});
 
 				doubleRequestAnimationFrame(() => { menu.style.opacity = '1'; });
 			},
-			close(menu): void {
+			close(menu: HTMLElement, callback: Function): void {
 				menu.style.opacity = '1';
-				menu.style.transition = 'opacity 250ms ease';
+				menu.style.transition = 'opacity 1000ms ease';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
+					callback();
 				}, {once: true});
 
 				doubleRequestAnimationFrame(() => { menu.style.opacity = '0'; });
 			},
 		},
 		slide: {
-			open(menu): void {
+			open(menu: HTMLElement, callback: Function): void {
 				menu.style.overflow = 'hidden';
 				menu.style.display = 'block';
 				const height = menu.offsetHeight;
-				menu.style.height = '0';
-				menu.style.transition = 'height 250ms ease-out';
+				menu.style.maxHeight = '0';
+				menu.style.transition = 'max-height 1000ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.overflow = 'visible';
 					menu.style.transition = 'none';
-					menu.style.height = 'auto';
+					menu.style.maxHeight = 'none';
+					callback();
 				}, {once: true});
 
-				doubleRequestAnimationFrame(() => { menu.style.height = `${height}px`; });
+				doubleRequestAnimationFrame(() => { menu.style.maxHeight = `${height}px`; });
 			},
-			close(menu): void {
+			close(menu: HTMLElement, callback: Function): void {
 				menu.style.overflow = 'hidden';
 				menu.style.display = 'block';
 				const height = menu.offsetHeight;
-				menu.style.height = `${height}px`;
-				menu.style.transition = 'height 250ms ease-out';
+				menu.style.maxHeight = `${height}px`;
+				menu.style.transition = 'max-height 1000ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
 					menu.style.overflow = 'visible';
 					menu.style.transition = 'none';
-					menu.style.height = 'auto';
+					menu.style.maxHeight = 'none';
+					callback();
 				}, {once: true});
 
-				doubleRequestAnimationFrame(() => { menu.style.height = '0'; });
+				doubleRequestAnimationFrame(() => { menu.style.maxHeight = '0'; });
 			},
 		},
 	}
@@ -270,7 +279,7 @@ class Menu {
 		const transition = this.transition.open;
 
 		// Run the transition function.
-		transition(this.menu);
+		transition(this.menu, () => {});
 
 		doubleRequestAnimationFrame(() => {
 			//
@@ -302,12 +311,9 @@ class Menu {
 			: this.transition.close;
 
 		// Run the transition function.
-		transition(this.menu);
+		transition(this.menu, () => { this.closeChildMenus(); });
 
 		doubleRequestAnimationFrame(() => {
-			// Close any open child menus.
-			this.closeChildMenus();
-
 			//
 			if (this.hasMenuButton || this.parent.isRoot) {
 				this.button.tabIndex = 0;
