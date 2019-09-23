@@ -1,8 +1,9 @@
 /**
  * TODO
- * 
+ *
  * * Fix slide transition issue with padding and border.
  * * Add documentation for transitions.
+ * * Add documentatino for events.
  * * Create a test demo with visualization for attributes and external focusable elements.
  */
 
@@ -283,6 +284,9 @@ class Menu {
 		// Close any open sibling menus.
 		this.closeSiblingMenus();
 
+		// Dispatch the event.
+		this.menu.dispatchEvent(new CustomEvent('menuopen'));
+
 		// Get the transition function.
 		const transition = this.transition.open;
 
@@ -313,6 +317,9 @@ class Menu {
 
 		// Stop listening for outside clicks.
 		document.removeEventListener('click', this.closeOnOutsideClickBound);
+
+		// Dispatch the event.
+		this.menu.dispatchEvent(new CustomEvent('menuclose'));
 
 		// Get the transition function.
 		const transition = closeInstantly
