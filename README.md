@@ -4,7 +4,7 @@
 
 ## Features
 
-- **Fully accessible** - Incorporates all essential practices for accessibilty.
+- **Fully accessible** - Incorporates all essential practices for accessibility.
 - **Style-agnostic** - Makes very few style assumptions and mandates.
 - **Highly flexible** - Allows for infinitely-nested menus.
 
@@ -127,7 +127,7 @@ When focus is on a button:
 			- Closes the menu and any open child menus. Moves focus to the button which opened it.
 - **Tab**
 	- Closes all menus. Moves focus to the next focusable element outside the menu system.
-_ **Shift + Tab**
+- **Shift + Tab**
 	- Closes all menus. Moves focus to the previous focusable element outside the menu system.
 - **Left Arrow** - Moves focus to the previous button in the menu. If focus is on the first button, moves focus to the last button.
 - **Right Arrow** - Moves focus to the next button in the menu. If focus is on the last button, moves focus to the first button.
@@ -193,7 +193,7 @@ By default, menus will open and close instantly. However, there are two built-in
 new Menu(menu, menuButton, ['fade', 'slide']);
 ```
 
-Transition settings are passed down from parent menu to child menu, so if the menu in the above example has tertiary and quaternary menus, they would slide. Because of this inheretence, if you wanted all menus to slide, you could simply pass in `['slide']`.
+Transition settings are passed down from parent menu to child menu, so if the menu in the above example has tertiary and quaternary menus, they would slide. Because of this inheritence, if you wanted all menus to slide, you could simply pass in `['slide']`.
 
 Note: In menu systems that do not have a menu button (i.e. visually persistent menus not toggled by a menu button), the transition settings for the root menu are still configured at index 0 of the array, even though this menu will never transition. For example, the code below indicates a menu without a menu button whose child menus fade and grandchild menus slide.
 
