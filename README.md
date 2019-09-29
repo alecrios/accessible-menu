@@ -5,7 +5,7 @@
 ## Features
 
 - **Fully accessible** - Incorporates all essential practices for accessibilty.
-- **Style-agnostic** - Makes no assumptions about the CSS.
+- **Style-agnostic** - Makes very few style assumptions and mandates.
 - **Highly flexible** - Allows for infinitely-nested menus.
 
 ## Terminology
@@ -184,5 +184,55 @@ The code above will yield a visually persistent menu. If instead the menu should
 	new Menu(document.querySelector('.menu'), document.querySelector('.menu-button'));
 </script>
 ```
+
+### Transitions
+
+By default, menus will open and close instantly. However, there are two built-in transition types to choose from, `fade` and `slide`. To set transition types, you'll need to pass in a third parameter into the class constructor. Because this menu system supports infinite nesting of child menus, this parameter is an array, where the index in the array corresponds to the depth of the target menu. For example, to create a menu system in which the root menu (toggled by a menu button) fades, while the child menus slide, this is the syntax:
+
+``` js
+new Menu(menu, menuButton, ['fade', 'slide']);
+```
+
+Transition settings are passed down from parent menu to child menu, so if the menu in the above example has tertiary and quaternary menus, they would slide. Because of this inheretence, if you wanted all menus to slide, you could simply pass in `['slide']`.
+
+Note: In menu systems that do not have a menu button (i.e. visually persistent menus not toggled by a menu button), the transition settings for the root menu are still configured at index 0 of the array, even though this menu will never transition. For example, the code below indicates a menu without a menu button whose child menus fade and grandchild menus slide.
+
+``` js
+new Menu(menu, null, [null, 'fade', 'slide']);
+```
+
+Custom transitions are also supported. To use a custom transition, simply pass in an object that contains open and close functions rather than `'slide'` or `'fade'`. Each function is required to run a provided callback function when the animation is complete. See the example below:
+
+``` js
+const customTransition = {
+	open: (menu, callback) => {
+		// Animation code...
+
+		// Run callback when complete, e.g. on `transitionend`.
+		callback();
+	},
+	close: (menu, callback) => {
+		// Animation code...
+
+		// Run callback when complete, e.g. on `transitionend`.
+		callback();
+	},
+};
+
+new Menu(menu, menuButton, ['fade', customTransition]);
+```
+
+### Events
+
+If you need to run certain functions based on menu behavior, you can listen for events on the menu element. When the menu is opens, it dispatches `menuopen`. When the menu closes, it dispatches `menuclose`. See the example below:
+
+``` js
+const menu = document.querySelector('.menu');
+new Menu(menu);
+menu.addEventListener('menuopen', () => { console.log('Open'); });
+menu.addEventListener('menuclose', () => { console.log('Close'); });
+```
+
+### Examples
 
 [See full examples &raquo;](./examples)
