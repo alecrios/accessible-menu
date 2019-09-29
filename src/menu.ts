@@ -1,12 +1,3 @@
-/**
- * TODO
- *
- * * Fix slide transition issue with padding and border.
- * * Add documentation for transitions.
- * * Add documentatino for events.
- * * Create a test demo with visualization for attributes and external focusable elements.
- */
-
 /** An object which manages the data for a menu item. */
 interface Item {
 	element: HTMLElement;
@@ -78,7 +69,7 @@ class Menu {
 		fade: {
 			open(menu: HTMLElement, callback: Function): void {
 				menu.style.opacity = '0';
-				menu.style.transition = 'opacity 100ms ease';
+				menu.style.transition = 'opacity 250ms ease';
 				menu.style.display = 'block';
 
 				menu.addEventListener('transitionend', () => {
@@ -89,7 +80,7 @@ class Menu {
 			},
 			close(menu: HTMLElement, callback: Function): void {
 				menu.style.opacity = '1';
-				menu.style.transition = 'opacity 100ms ease';
+				menu.style.transition = 'opacity 250ms ease';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
@@ -101,37 +92,34 @@ class Menu {
 		},
 		slide: {
 			open(menu: HTMLElement, callback: Function): void {
+				menu.style.height = '0';
 				menu.style.overflow = 'hidden';
+				menu.style.transition = 'height 250ms ease-out';
 				menu.style.display = 'block';
-				const height = menu.offsetHeight;
-				menu.style.maxHeight = '0';
-				menu.style.transition = 'max-height 100ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
-					menu.style.overflow = 'visible';
-					menu.style.transition = 'none';
-					menu.style.maxHeight = 'none';
+					menu.style.removeProperty('height');
+					menu.style.removeProperty('overflow');
+					menu.style.removeProperty('transition');
 					callback();
 				}, {once: true});
 
-				doubleRequestAnimationFrame(() => { menu.style.maxHeight = `${height}px`; });
+				doubleRequestAnimationFrame(() => { menu.style.height = `${menu.scrollHeight}px`; });
 			},
 			close(menu: HTMLElement, callback: Function): void {
+				menu.style.height = `${menu.scrollHeight}px`;
 				menu.style.overflow = 'hidden';
-				menu.style.display = 'block';
-				const height = menu.offsetHeight;
-				menu.style.maxHeight = `${height}px`;
-				menu.style.transition = 'max-height 100ms ease-out';
+				menu.style.transition = 'height 250ms ease-out';
 
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
-					menu.style.overflow = 'visible';
-					menu.style.transition = 'none';
-					menu.style.maxHeight = 'none';
+					menu.style.removeProperty('height');
+					menu.style.removeProperty('overflow');
+					menu.style.removeProperty('transition');
 					callback();
 				}, {once: true});
 
-				doubleRequestAnimationFrame(() => { menu.style.maxHeight = '0'; });
+				doubleRequestAnimationFrame(() => { menu.style.height = '0'; });
 			},
 		},
 	}
@@ -154,7 +142,7 @@ class Menu {
 		this.hasMenuButton = this.isRoot && !!this.button;
 		this.isOpen = !this.isToggleable;
 		this.items = Menu.getMenuItems(this.menu).map(this.createItem.bind(this));
-		this.closeOnOutsideClickBound = this.closeOnOutsideClick.bind(this);
+		this.closeOnOutsideClick = this.closeOnOutsideClick.bind(this);
 
 		// Configure elements.
 		this.setMenuAndButtonID();
@@ -279,7 +267,7 @@ class Menu {
 		this.button.setAttribute('aria-expanded', 'true');
 
 		// Start listening for outside clicks.
-		document.addEventListener('click', this.closeOnOutsideClickBound);
+		document.addEventListener('click', this.closeOnOutsideClick);
 
 		// Close any open sibling menus.
 		this.closeSiblingMenus();
@@ -305,7 +293,7 @@ class Menu {
 		});
 	}
 
-	private closeMenu({ closeInstantly = false, skipFocus = false } = {}): void {
+	private closeMenu({closeInstantly = false, skipFocus = false} = {}): void {
 		// Only continue if there is a menu able to be closed.
 		if (!this.menu || !this.isToggleable || !this.isOpen) return;
 
@@ -316,7 +304,7 @@ class Menu {
 		this.button.setAttribute('aria-expanded', 'false');
 
 		// Stop listening for outside clicks.
-		document.removeEventListener('click', this.closeOnOutsideClickBound);
+		document.removeEventListener('click', this.closeOnOutsideClick);
 
 		// Dispatch the event.
 		this.menu.dispatchEvent(new CustomEvent('menuclose'));
@@ -387,7 +375,7 @@ class Menu {
 			if (item.menu === this || !item.menu) return;
 
 			// Close the menu.
-			item.menu.closeMenu({ skipFocus: true });
+			item.menu.closeMenu({skipFocus: true});
 		});
 	}
 
@@ -397,7 +385,7 @@ class Menu {
 			if (!item.menu) return;
 
 			// Close the the menu.
-			item.menu.closeMenu({ closeInstantly: true, skipFocus: true });
+			item.menu.closeMenu({closeInstantly: true, skipFocus: true});
 		});
 	}
 
@@ -405,7 +393,7 @@ class Menu {
 		// If this is the root menu and it is toggleable, close it.
 		if (this.isRoot) {
 			if (this.isToggleable) {
-				this.closeMenu({ skipFocus: true });
+				this.closeMenu({skipFocus: true});
 			}
 
 			return;
@@ -413,7 +401,7 @@ class Menu {
 
 		// If this is the root menu's child menu and the root is not toggleable, close it.
 		if (this.parent.isRoot && !this.parent.isToggleable) {
-			this.closeMenu({ skipFocus: true });
+			this.closeMenu({skipFocus: true});
 			return;
 		}
 
