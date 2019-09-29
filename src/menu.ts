@@ -537,7 +537,7 @@ class Menu {
 	}
 
 	private static getFirstCharacter(element: HTMLElement): string {
-		return element.textContent.substring(0, 1);
+		return element.textContent.trim().substring(0, 1);
 	}
 
 	private static getItemTabIndex(index: number, isInRootMenu: boolean): number {
