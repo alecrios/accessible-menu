@@ -246,7 +246,8 @@ class Menu {
 
 		// Determine the index and the menu for this item.
 		const target = event.target as HTMLElement;
-		const index = Number(target.dataset.index);
+		const button = target.closest('.button') as HTMLElement;
+		const index = Number(button.dataset.index);
 		const menu = this.items[index].menu;
 
 		// Focus the button that was clicked.
