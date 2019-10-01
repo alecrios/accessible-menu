@@ -416,20 +416,32 @@ class Menu {
 		const target = event.target as HTMLElement;
 		const index = Number(target.dataset.index);
 
+		let preventDefault = false;
+
 		if (key === 'Escape') {
 			this.closeMenu();
 		} else if (key === 'Tab') {
 			this.closeAllMenus();
 		} else if (key === 'ArrowLeft' || key === 'ArrowUp') {
 			this.focusPreviousItem(index);
+			preventDefault = true;
 		} else if (key === 'ArrowRight' || key === 'ArrowDown') {
 			this.focusNextItem(index);
+			preventDefault = true;
 		} else if (key === 'Home' || key === 'PageUp') {
 			this.focusFirstItem();
+			preventDefault = true;
 		} else if (key === 'End' || key === 'PageDown') {
 			this.focusLastItem();
+			preventDefault = true;
 		} else if (Menu.isPrintableCharacter(key)) {
 			this.focusNextCharacterMatch(index, key);
+			preventDefault = true;
+		}
+
+		if (preventDefault) {
+			event.stopPropagation();
+			event.preventDefault();
 		}
 	}
 
