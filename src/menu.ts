@@ -25,7 +25,7 @@ class Menu {
 	private button: HTMLElement;
 
 	/** The array of transitions for all menus. */
-	private transitions: [string | Transition];
+	private transitions: (string | Transition)[];
 
 	/** The transition for this menu. */
 	private transition: Transition;
@@ -127,7 +127,7 @@ class Menu {
 	constructor(
 		menu: HTMLElement,
 		button?: HTMLElement,
-		transitions?: [string | Transition],
+		transitions?: (string | Transition)[],
 		parent?: Menu,
 	) {
 		// Define the class properties.
@@ -332,7 +332,7 @@ class Menu {
 		});
 	}
 
-	private getTransition(transitions: [string | Transition], depth: number): Transition {
+	private getTransition(transitions: (string | Transition)[], depth: number): Transition {
 		// Get the transition object to fallback to.
 		const defaultTransition = Menu.transitionFunctions.instant;
 
