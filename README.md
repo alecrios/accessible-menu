@@ -201,25 +201,19 @@ Note: In menu systems that do not have a menu button (i.e. visually persistent m
 new Menu(menu, null, [null, 'fade', 'slide']);
 ```
 
-Custom transitions are also supported. To use a custom transition, simply pass in an object that contains open and close functions rather than `'slide'` or `'fade'`. Each function is required to run a provided callback function when the animation is complete. See the example below:
+Custom transitions are also supported. To use a custom transition, simply pass in an object that contains open and close functions rather than `'slide'` or `'fade'`. Each function is required to run the provided callback function when the animation is complete.
 
 ``` js
 const customTransition = {
 	open: (menu, callback) => {
-		// Animation code...
-
-		// Run callback when complete, e.g. on `transitionend`.
-		callback();
+		// Transition code...
 	},
 	close: (menu, callback) => {
-		// Animation code...
-
-		// Run callback when complete, e.g. on `transitionend`.
-		callback();
+		// Transition code...
 	},
 };
 
-new Menu(menu, menuButton, ['fade', customTransition]);
+new Menu(menu, menuButton, [customTransition]);
 ```
 
 ### Events

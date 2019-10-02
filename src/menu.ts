@@ -51,9 +51,6 @@ class Menu {
 	/** The items which belong to this menu. */
 	private items: Item[];
 
-	/** The bound function which closes the menu if an external click is detected. */
-	private closeOnOutsideClickBound: EventListenerObject;
-
 	/** The transition functions for opening and closing menus. */
 	private static transitionFunctions = {
 		instant: {
@@ -74,7 +71,7 @@ class Menu {
 
 				menu.addEventListener('transitionend', () => {
 					callback();
-				}, {once: true});
+				}, { once: true });
 
 				doubleRequestAnimationFrame(() => { menu.style.opacity = '1'; });
 			},
@@ -85,7 +82,7 @@ class Menu {
 				menu.addEventListener('transitionend', () => {
 					menu.style.display = 'none';
 					callback();
-				}, {once: true});
+				}, { once: true });
 
 				doubleRequestAnimationFrame(() => { menu.style.opacity = '0'; });
 			},
@@ -102,7 +99,7 @@ class Menu {
 					menu.style.removeProperty('overflow');
 					menu.style.removeProperty('transition');
 					callback();
-				}, {once: true});
+				}, { once: true });
 
 				doubleRequestAnimationFrame(() => { menu.style.height = `${menu.scrollHeight}px`; });
 			},
@@ -117,7 +114,7 @@ class Menu {
 					menu.style.removeProperty('overflow');
 					menu.style.removeProperty('transition');
 					callback();
-				}, {once: true});
+				}, { once: true });
 
 				doubleRequestAnimationFrame(() => { menu.style.height = '0'; });
 			},
@@ -211,8 +208,8 @@ class Menu {
 
 		// Return the Item, only creating a new Menu if a menu element is found.
 		return menu !== null
-			? {element, button, menu: this.createMenu(menu, button)}
-			: {element, button};
+			? { element, button, menu: this.createMenu(menu, button) }
+			: { element, button };
 	}
 
 	private createMenu(menu: HTMLElement, button: HTMLElement): Menu {
@@ -294,7 +291,7 @@ class Menu {
 		});
 	}
 
-	private closeMenu({closeInstantly = false, skipFocus = false} = {}): void {
+	private closeMenu({ closeInstantly = false, skipFocus = false } = {}): void {
 		// Only continue if there is a menu able to be closed.
 		if (!this.menu || !this.isToggleable || !this.isOpen) return;
 
@@ -376,7 +373,7 @@ class Menu {
 			if (item.menu === this || !item.menu) return;
 
 			// Close the menu.
-			item.menu.closeMenu({skipFocus: true});
+			item.menu.closeMenu({ skipFocus: true });
 		});
 	}
 
@@ -386,7 +383,7 @@ class Menu {
 			if (!item.menu) return;
 
 			// Close the the menu.
-			item.menu.closeMenu({closeInstantly: true, skipFocus: true});
+			item.menu.closeMenu({ closeInstantly: true, skipFocus: true });
 		});
 	}
 
@@ -394,7 +391,7 @@ class Menu {
 		// If this is the root menu and it is toggleable, close it.
 		if (this.isRoot) {
 			if (this.isToggleable) {
-				this.closeMenu({skipFocus: true});
+				this.closeMenu({ skipFocus: true });
 			}
 
 			return;
@@ -402,7 +399,7 @@ class Menu {
 
 		// If this is the root menu's child menu and the root is not toggleable, close it.
 		if (this.parent.isRoot && !this.parent.isToggleable) {
-			this.closeMenu({skipFocus: true});
+			this.closeMenu({ skipFocus: true });
 			return;
 		}
 
