@@ -436,7 +436,6 @@ class Menu {
 			preventDefault = true;
 		} else if (Menu.isPrintableCharacter(key)) {
 			this.focusNextCharacterMatch(index, key);
-			preventDefault = true;
 		}
 
 		if (preventDefault) {
