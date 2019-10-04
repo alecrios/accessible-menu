@@ -195,7 +195,9 @@ By default, menus will open and close instantly. However, transitions can be set
 </div>
 ```
 
-Custom transitions are also supported. Simply define your transition on the `Menu.transitions` object, and pass the key into the `data-transition` attribute. Both the open and close functions are required to run the provided callback function when the animation is complete (e.g. on a `transitionend` event). Check the source code for example transitions.
+Each menu can have its own transition, independent from the other menus in the system.
+
+Custom transitions are also supported. Simply define a new object on `Menu.transitions` with an `open()` and `close()` function, and pass the key into the `data-transition` attribute. Both the open and close functions are required to run the provided callback function when the animation is complete (e.g. on a `transitionend` event). Check the source code for example transitions.
 
 ``` js
 Menu.transitions.myCustomTransition = {
