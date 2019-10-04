@@ -11,12 +11,12 @@
 <body>
 	<button class="menu-button"></button>
 
-	<div class="menu">
+	<div class="menu" data-transition="slide">
 		<div class="items">
 			<div class="item has-menu">
 				<button class="button">Dolor Sit</button>
 
-				<div class="menu">
+				<div class="menu" data-transition="slide">
 					<div class="items">
 						<div class="item">
 							<a class="button" href="#">Bibendum Id</a>
@@ -36,7 +36,7 @@
 			<div class="item has-menu">
 				<button class="button">Integer Eleifend</button>
 
-				<div class="menu">
+				<div class="menu" data-transition="slide">
 					<div class="items">
 						<div class="item">
 							<a class="button" href="#">Lectus Quis</a>
@@ -64,7 +64,7 @@
 			<div class="item has-menu">
 				<button class="button">Dolor Sit</button>
 
-				<div class="menu">
+				<div class="menu" data-transition="slide">
 					<div class="items">
 						<div class="item">
 							<a class="button" href="#">Bibendum Id</a>
@@ -84,7 +84,7 @@
 			<div class="item has-menu">
 				<button class="button">Praesent Blandit</button>
 
-				<div class="menu">
+				<div class="menu" data-transition="slide">
 					<div class="items">
 						<div class="item">
 							<a class="button" href="#">Amet lobortis</a>
@@ -116,7 +116,7 @@
 	<script>
 		const menu = document.querySelector('.menu');
 		const menuButton = document.querySelector('.menu-button');
-		new Menu(menu, menuButton, ['slide']);
+		new Menu(menu, menuButton);
 	</script>
 </body>
 </html>

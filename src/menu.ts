@@ -24,9 +24,6 @@ class Menu {
 	/** The button element. */
 	private button: HTMLElement;
 
-	/** The array of transitions for all menus. */
-	private transitions: (string | Transition)[];
-
 	/** The transition for this menu. */
 	private transition: Transition;
 
@@ -52,7 +49,7 @@ class Menu {
 	private items: Item[];
 
 	/** The transition functions for opening and closing menus. */
-	private static transitionFunctions = {
+	private static transitions = {
 		instant: {
 			open(menu: HTMLElement, callback: Function): void {
 				menu.style.display = 'block';
@@ -121,20 +118,14 @@ class Menu {
 		},
 	}
 
-	constructor(
-		menu: HTMLElement,
-		button?: HTMLElement,
-		transitions?: (string | Transition)[],
-		parent?: Menu,
-	) {
+	constructor(menu: HTMLElement, button?: HTMLElement, parent?: Menu) {
 		// Define the class properties.
 		this.menu = menu;
 		this.button = button;
-		this.transitions = transitions;
 		this.parent = parent;
 		this.isRoot = !this.parent;
 		this.depth = this.isRoot ? 0 : this.parent.depth + 1;
-		this.transition = this.getTransition(this.transitions, this.depth);
+		this.transition = this.getTransition();
 		this.isToggleable = !!this.button;
 		this.hasMenuButton = this.isRoot && !!this.button;
 		this.isOpen = !this.isToggleable;
@@ -229,7 +220,7 @@ class Menu {
 		menu.style.display = 'none';
 
 		// Return a newly created Menu.
-		return new Menu(menu, button, this.transitions, this);
+		return new Menu(menu, button, this);
 	}
 
 	private menuButtonClickHandler(): void {
@@ -308,9 +299,7 @@ class Menu {
 		this.menu.dispatchEvent(new CustomEvent('menuclose'));
 
 		// Get the transition function.
-		const transition = closeInstantly
-			? Menu.transitionFunctions.instant.close
-			: this.transition.close;
+		const transition = closeInstantly ? Menu.transitions.instant.close : this.transition.close;
 
 		// Run the transition function.
 		transition(this.menu, () => { this.closeChildMenus(); });
@@ -327,42 +316,6 @@ class Menu {
 				this.button.focus();
 			}
 		});
-	}
-
-	private getTransition(transitions: (string | Transition)[], depth: number): Transition {
-		// Get the transition object to fallback to.
-		const defaultTransition = Menu.transitionFunctions.instant;
-
-		// If the transitions array is invalid, fallback to the default.
-		if (!transitions || !Array.isArray(transitions) || !transitions.length) {
-			return defaultTransition;
-		}
-
-		// If the transition isn't specified for the menu at this depth, look up the tree.
-		if (!transitions[depth]) {
-			return depth === 0
-				? defaultTransition
-				: this.getTransition(transitions, depth - 1);
-		}
-
-		// Check if the name of a built-in transition was specified.
-		if (typeof transitions[depth] === 'string') {
-			const transitionName = transitions[depth] as string;
-			return Object.keys(Menu.transitionFunctions).includes(transitionName)
-				? Menu.transitionFunctions[transitionName]
-				: defaultTransition;
-		}
-
-		// Check if a custom transition object was provided.
-		if (typeof transitions[depth] === 'object') {
-			const transition = transitions[depth] as Transition;
-			return typeof transition.open === 'function' && typeof transition.close === 'function'
-				? transition
-				: defaultTransition;
-		}
-
-		// Fallback to the default.
-		return defaultTransition;
 	}
 
 	private closeSiblingMenus(): void {
@@ -518,6 +471,12 @@ class Menu {
 
 		// No match found.
 		return -1;
+	}
+
+	private getTransition(): Transition {
+		return Object.keys(Menu.transitions).includes(this.menu.dataset.transition)
+			? Menu.transitions[this.menu.dataset.transition]
+			: Menu.transitions.instant;
 	}
 
 	private static getMenuItems(menu: HTMLElement): HTMLElement[] {

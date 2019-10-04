@@ -187,24 +187,18 @@ The code above will yield a visually persistent menu. If instead the menu should
 
 ### Transitions
 
-By default, menus will open and close instantly. However, there are two built-in transition types to choose from, `fade` and `slide`. To set transition types, you'll need to pass in a third parameter into the class constructor. Because this menu system supports infinite nesting of child menus, this parameter is an array, where the index in the array corresponds to the depth of the target menu. For example, to create a menu system in which the root menu (toggled by a menu button) fades, while the child menus slide, this is the syntax:
+By default, menus will open and close instantly. However, transitions can be set using the `data-transition` attribute on the menu element. There are two built-in transitions: `fade` and `slide`.
 
-``` js
-new Menu(menu, menuButton, ['fade', 'slide']);
+``` html
+<div class="menu" data-transition="fade">
+	<!-- Items... -->
+</div>
 ```
 
-Transition settings are passed down from parent menu to child menu, so if the menu in the above example has tertiary and quaternary menus, they would slide. Because of this inheritence, if you wanted all menus to slide, you could simply pass in `['slide']`.
-
-Note: In menu systems that do not have a menu button (i.e. visually persistent menus not toggled by a menu button), the transition settings for the root menu are still configured at index 0 of the array, even though this menu will never transition. For example, the code below indicates a menu without a menu button whose child menus fade and grandchild menus slide.
+Custom transitions are also supported. Simply define your transition on the `Menu.transitions` object, and pass the key into the `data-transition` attribute. Both the open and close functions are required to run the provided callback function when the animation is complete (e.g. on a `transitionend` event). Check the source code for example transitions.
 
 ``` js
-new Menu(menu, null, [null, 'fade', 'slide']);
-```
-
-Custom transitions are also supported. To use a custom transition, simply pass in an object that contains open and close functions rather than `'slide'` or `'fade'`. Each function is required to run the provided callback function when the animation is complete.
-
-``` js
-const customTransition = {
+Menu.transitions.myCustomTransition = {
 	open: (menu, callback) => {
 		// Transition code...
 	},
@@ -212,13 +206,17 @@ const customTransition = {
 		// Transition code...
 	},
 };
+```
 
-new Menu(menu, menuButton, [customTransition]);
+``` html
+<div class="menu" data-transition="myCustomTransition">
+	<!-- Items... -->
+</div>
 ```
 
 ### Events
 
-If you need to run certain functions based on menu behavior, you can listen for events on the menu element. When the menu is opens, it dispatches `menuopen`. When the menu closes, it dispatches `menuclose`. See the example below:
+If you need to run certain functions based on menu behavior, you can listen for events on the menu element. When the menu opens, it dispatches `menuopen`. When the menu closes, it dispatches `menuclose`. See the example below:
 
 ``` js
 const menu = document.querySelector('.menu');
