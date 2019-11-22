@@ -45,6 +45,9 @@ class Menu {
 	/** Whether this menu is in the open state. */
 	private isOpen: boolean;
 
+	/** Whether this menu is in the transitioning state. */
+	private isTransitioning: boolean;
+
 	/** The items which belong to this menu. */
 	private items: Item[];
 
@@ -129,6 +132,7 @@ class Menu {
 		this.isToggleable = !!this.button;
 		this.hasMenuButton = this.isRoot && !!this.button;
 		this.isOpen = !this.isToggleable;
+		this.isTransitioning = false;
 		this.items = Menu.getMenuItems(this.menu).map(this.createItem.bind(this));
 		this.closeOnOutsideClick = this.closeOnOutsideClick.bind(this);
 
@@ -246,11 +250,14 @@ class Menu {
 	}
 
 	private openMenu(): void {
+		// Only continue if the menu is not already transitioning.
+		if (this.isTransitioning) return;
+
 		// Only continue if there is a menu able to be opened.
 		if (!this.menu || !this.isToggleable || this.isOpen) return;
 
-		// Update the menu visibility state.
-		this.isOpen = true;
+		// Update the menu state.
+		this.isTransitioning = true;
 
 		// Update the button element.
 		this.button.setAttribute('aria-expanded', 'true');
@@ -268,7 +275,11 @@ class Menu {
 		const transition = this.transition.open;
 
 		// Run the transition function.
-		transition(this.menu, () => {});
+		transition(this.menu, () => {
+			// Update the menu state.
+			this.isTransitioning = false;
+			this.isOpen = true;
+		});
 
 		// Perform some actions once the layout has updated.
 		doubleRequestAnimationFrame(() => {
@@ -283,11 +294,14 @@ class Menu {
 	}
 
 	private closeMenu({ closeInstantly = false, skipFocus = false } = {}): void {
+		// Only continue if the menu is not already transitioning.
+		if (this.isTransitioning) return;
+
 		// Only continue if there is a menu able to be closed.
 		if (!this.menu || !this.isToggleable || !this.isOpen) return;
 
-		// Update the menu visibility state.
-		this.isOpen = false;
+		// Update the menu state.
+		this.isTransitioning = true;
 
 		// Update the button element.
 		this.button.setAttribute('aria-expanded', 'false');
@@ -302,7 +316,13 @@ class Menu {
 		const transition = closeInstantly ? Menu.transitions.instant.close : this.transition.close;
 
 		// Run the transition function.
-		transition(this.menu, () => { this.closeChildMenus(); });
+		transition(this.menu, () => {
+			this.closeChildMenus();
+
+			// Update the menu state.
+			this.isTransitioning = false;
+			this.isOpen = false;
+		});
 
 		// Perform some actions once the layout has updated.
 		doubleRequestAnimationFrame(() => {
