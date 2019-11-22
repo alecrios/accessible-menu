@@ -218,13 +218,15 @@ Menu.transitions.myCustomTransition = {
 
 ### Events
 
-If you need to run certain functions according to menu behavior, you can listen for events on the menu element. When the menu opens, it dispatches `menuopen`. When the menu closes, it dispatches `menuclose`. See the example below:
+If you need to run certain functions according to menu behavior, you can listen for events on the menu element. When the menu begins the open transition, it dispatches `menuopenstart`. When it finishes the open transition, it dispatches `menuopenend`. When the menu begins the close transition, it dispatches `menuclosestart`. When it finishes the close transition, it dispatches `menucloseend`. See the example below:
 
 ``` js
 const menu = document.querySelector('.menu');
 new Menu(menu);
-menu.addEventListener('menuopen', () => { console.log('Open'); });
-menu.addEventListener('menuclose', () => { console.log('Close'); });
+menu.addEventListener('menuopenstart', () => { console.log('Opening...'); });
+menu.addEventListener('menuopenend', () => { console.log('Opened!'); });
+menu.addEventListener('menuclosestart', () => { console.log('Closing...'); });
+menu.addEventListener('menucloseend', () => { console.log('Closed!'); });
 ```
 
 ### Examples

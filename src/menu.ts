@@ -268,8 +268,8 @@ class Menu {
 		// Close any open sibling menus.
 		this.closeSiblingMenus();
 
-		// Dispatch the event.
-		this.menu.dispatchEvent(new CustomEvent('menuopen'));
+		// Dispatch the open start event.
+		this.menu.dispatchEvent(new CustomEvent('menuopenstart'));
 
 		// Get the transition function.
 		const transition = this.transition.open;
@@ -279,6 +279,9 @@ class Menu {
 			// Update the menu state.
 			this.isTransitioning = false;
 			this.isOpen = true;
+
+			// Dispatch the open end event.
+			this.menu.dispatchEvent(new CustomEvent('menuopenend'));
 		});
 
 		// Perform some actions once the layout has updated.
@@ -309,19 +312,23 @@ class Menu {
 		// Stop listening for outside clicks.
 		document.removeEventListener('click', this.closeOnOutsideClick);
 
-		// Dispatch the event.
-		this.menu.dispatchEvent(new CustomEvent('menuclose'));
+		// Dispatch the close start event.
+		this.menu.dispatchEvent(new CustomEvent('menuclosestart'));
 
 		// Get the transition function.
 		const transition = closeInstantly ? Menu.transitions.instant.close : this.transition.close;
 
 		// Run the transition function.
 		transition(this.menu, () => {
+			// Close any open child menus.
 			this.closeChildMenus();
 
 			// Update the menu state.
 			this.isTransitioning = false;
 			this.isOpen = false;
+
+			// Dispatch the close end event.
+			this.menu.dispatchEvent(new CustomEvent('menucloseend'));
 		});
 
 		// Perform some actions once the layout has updated.
